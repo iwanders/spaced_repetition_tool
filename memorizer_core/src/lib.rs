@@ -4,4 +4,5 @@
 // But also 0x23 <-> 35 <-> 0b100011, so a triangle of representations.
 // Or even 0x23 <-> 35 <-> 0b100011 <-> '#', a triangle...
 
+pub mod text;
 pub mod traits;

@@ -23,16 +23,16 @@ pub trait Transformation: std::fmt::Debug {
     fn get_id(&self) -> u128;
 }
 
+pub type LearnableEdge<'a> = (
+    Box<&'a dyn Representation>,
+    Box<&'a dyn Transformation>,
+    Box<&'a dyn Representation>,
+);
+
 /// Something that relates transformations and representations to each other.
 pub trait Learnable: std::fmt::Debug {
     /// Get the possible edges for this learnable.
-    fn get_edges(
-        &self,
-    ) -> &[(
-        &dyn Representation,
-        &dyn Transformation,
-        &dyn Representation,
-    )];
+    fn get_edges(&self) -> Vec<LearnableEdge>;
 
     /// Unique id for this learnable.
     fn get_id(&self) -> u128;

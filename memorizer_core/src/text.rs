@@ -1,9 +1,13 @@
 use crate::traits::*;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug)]
-struct TextRepresentation {
+// use serde::de::Deserializer;
+// use serde::ser::Serializer;
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct TextRepresentation {
     text: String,
-    id: u128,
+    id: Id,
 }
 
 impl Representation for TextRepresentation {
@@ -15,15 +19,15 @@ impl Representation for TextRepresentation {
         &self.text
     }
 
-    fn get_id(&self) -> u128 {
+    fn get_id(&self) -> Id {
         self.id
     }
 }
 
-#[derive(Debug)]
-struct TextTransformation {
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct TextTransformation {
     text: String,
-    id: u128,
+    id: Id,
 }
 
 impl Transformation for TextTransformation {
@@ -31,15 +35,16 @@ impl Transformation for TextTransformation {
         &self.text
     }
 
-    fn get_id(&self) -> u128 {
+    fn get_id(&self) -> Id {
         self.id
     }
 }
 
 type TextEdge = (TextRepresentation, TextTransformation, TextRepresentation);
-#[derive(Debug)]
-struct TextLearnable {
+#[derive(Debug, Default, Clone, Deserialize, Serialize)]
+pub struct TextLearnable {
     edges: Vec<TextEdge>,
+    id: Id,
 }
 
 impl Learnable for TextLearnable {
@@ -56,7 +61,75 @@ impl Learnable for TextLearnable {
             .collect::<_>()
     }
 
-    fn get_id(&self) -> u128 {
-        0
+    fn get_id(&self) -> Id {
+        self.id
     }
+}
+
+/// Representation on disk. Very much intended to be machine readable only.
+#[derive(Debug, Deserialize, Serialize)]
+pub struct TextLearnableStorage {
+    name: String,
+    id: Id,
+    transformations: Vec<TextTransformation>,
+    representations: Vec<TextRepresentation>,
+    learnables: Vec<Vec<(Id, Id, Id)>>,
+}
+
+pub fn load_text_learnables(
+    filename: &str,
+) -> Result<Vec<Box<dyn Learnable>>, Box<dyn std::error::Error>> {
+    let file = std::fs::File::open(filename).expect("file should be opened");
+    if filename.ends_with("yaml") {
+        let yaml: serde_yaml::Value = serde_yaml::from_reader(file)?;
+        let storage: TextLearnableStorage = serde_yaml::from_value(yaml)?;
+        // We need to go from this storage thing into the vector of Learnables.
+
+        // First, create two hashmaps to look up ids from.
+        use std::collections::HashMap;
+        let transforms = storage
+            .transformations
+            .iter()
+            .map(|z| (z.get_id(), z.clone()))
+            .collect::<HashMap<Id, TextTransformation>>();
+        let representations = storage
+            .representations
+            .iter()
+            .map(|z| (z.get_id(), z.clone()))
+            .collect::<HashMap<Id, TextRepresentation>>();
+
+        // Now, we can iterate through the learnables and connect all entries.
+        let mut res: Vec<Box<dyn Learnable>> = vec![];
+        for (i, relations) in storage.learnables.iter().enumerate() {
+            let mut learnable: TextLearnable = TextLearnable { id:i as Id + storage.id, ..Default::default()};
+            for (r1, t, r2) in relations.iter() {
+                let repr1 = representations.get(r1).ok_or_else(|| {
+                    Box::new(std::io::Error::new(
+                        std::io::ErrorKind::Other,
+                        format!("Failed to find representation: {r1}"),
+                    ))
+                })?;
+                let repr2 = representations.get(r2).ok_or_else(|| {
+                    Box::new(std::io::Error::new(
+                        std::io::ErrorKind::Other,
+                        format!("Failed to find representation: {r2}"),
+                    ))
+                })?;
+                let tr = transforms.get(t).ok_or_else(|| {
+                    Box::new(std::io::Error::new(
+                        std::io::ErrorKind::Other,
+                        format!("Failed to find transform: {t}"),
+                    ))
+                })?;
+                learnable.edges.push((repr1.clone(), tr.clone(), repr2.clone()));
+            }
+            res.push(Box::new(learnable));
+        }
+
+        return Ok(res);
+    }
+    Err(Box::new(std::io::Error::new(
+        std::io::ErrorKind::Other,
+        "File type not supported. Use .yaml.",
+    )))
 }

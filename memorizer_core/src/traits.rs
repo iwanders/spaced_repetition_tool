@@ -2,6 +2,8 @@ pub enum RepresentationType {
     Text,
 }
 
+pub type Id = u128;
+
 /// A partciular representation.
 pub trait Representation: std::fmt::Debug {
     /// Get the type of this presentation.
@@ -11,7 +13,7 @@ pub trait Representation: std::fmt::Debug {
     fn get_text(&self) -> &str;
 
     /// Unique id for this representation.
-    fn get_id(&self) -> u128;
+    fn get_id(&self) -> Id;
 }
 
 /// A transformation, like Hex->Binary or 'Translate from A into B'
@@ -20,7 +22,7 @@ pub trait Transformation: std::fmt::Debug {
     fn get_description(&self) -> &str;
 
     /// Unique id for this Transformation.
-    fn get_id(&self) -> u128;
+    fn get_id(&self) -> Id;
 }
 
 pub type LearnableEdge<'a> = (
@@ -35,5 +37,5 @@ pub trait Learnable: std::fmt::Debug {
     fn get_edges(&self) -> Vec<LearnableEdge>;
 
     /// Unique id for this learnable.
-    fn get_id(&self) -> u128;
+    fn get_id(&self) -> Id;
 }

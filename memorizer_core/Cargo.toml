@@ -1,0 +1,8 @@
+[package]
+name = "memorizer_core"
+version = "0.0.0"
+authors = ["Ivor Wanders <ivor@iwanders.net>"]
+edition = "2021"
+license = "MIT OR Apache-2.0"
+
+[dependencies]

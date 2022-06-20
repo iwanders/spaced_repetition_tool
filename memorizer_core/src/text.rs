@@ -10,6 +10,12 @@ pub struct TextRepresentation {
     id: Id,
 }
 
+impl TextRepresentation {
+    pub fn new(text: &str, id: Id) -> Self {
+        TextRepresentation{text: text.to_owned(), id}
+    }
+}
+
 impl Representation for TextRepresentation {
     fn get_type(&self) -> RepresentationType {
         RepresentationType::Text
@@ -30,6 +36,13 @@ pub struct TextTransformation {
     id: Id,
 }
 
+impl TextTransformation {
+    pub fn new(text: &str, id: Id) -> Self {
+        TextTransformation{text: text.to_owned(), id}
+    }
+}
+
+
 impl Transformation for TextTransformation {
     fn get_description(&self) -> &str {
         &self.text
@@ -45,6 +58,11 @@ type TextEdge = (TextRepresentation, TextTransformation, TextRepresentation);
 pub struct TextLearnable {
     edges: Vec<TextEdge>,
     id: Id,
+}
+impl TextLearnable {
+    pub fn new(edges: &[TextEdge], id: Id) -> Self {
+        TextLearnable{edges: edges.to_vec(), id}
+    }
 }
 
 impl Learnable for TextLearnable {
@@ -67,7 +85,7 @@ impl Learnable for TextLearnable {
 }
 
 /// Representation on disk. Very much intended to be machine readable only.
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Default, Deserialize, Serialize)]
 pub struct TextLearnableStorage {
     name: String,
     id: Id,
@@ -132,4 +150,46 @@ pub fn load_text_learnables(
         std::io::ErrorKind::Other,
         "File type not supported. Use .yaml.",
     )))
+}
+
+pub fn save_text_learnables(
+    filename: &str,
+    name: &str,
+    id: Id,
+    learnables: &[TextLearnable],
+) -> Result<(), Box<dyn std::error::Error>> {
+    let mut storage = TextLearnableStorage{name: name.to_owned(), id, ..Default::default()};
+    use std::collections::HashMap;
+    let mut transforms: HashMap<Id, TextTransformation> = Default::default();
+    let mut representations: HashMap<Id, TextRepresentation> = Default::default();
+    for learnable in learnables.iter()
+    {
+        let mut edges = vec![];
+        for (r1, tr, r2) in learnable.edges.iter()
+        {
+            representations.insert(r1.get_id(), r1.clone());
+            representations.insert(r2.get_id(), r2.clone());
+            transforms.insert(tr.get_id(), tr.clone());
+            edges.push((r1.get_id(), tr.get_id(), r2.get_id()));
+        }
+        storage.learnables.push(edges);
+    }
+    for (_id, tr) in transforms.drain() {
+        storage.transformations.push(tr);
+    }
+
+    for (_id, repr) in representations.drain() {
+        storage.representations.push(repr);
+    }
+    // let yaml: serde_yaml::Value = serde_yaml::from_reader(file)?;
+    // let storage: TextLearnableStorage = serde_yaml::from_value(yaml)?;
+    use std::fs::OpenOptions;
+    let file = OpenOptions::new()
+        .create(true)
+        .write(true)
+        .truncate(true)
+        .open(filename)?;
+    serde_yaml::to_writer(file, &storage)?;
+
+    Ok(())
 }

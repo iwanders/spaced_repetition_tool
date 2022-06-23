@@ -12,7 +12,10 @@ pub struct TextRepresentation {
 
 impl TextRepresentation {
     pub fn new(text: &str, id: Id) -> Self {
-        TextRepresentation{text: text.to_owned(), id}
+        TextRepresentation {
+            text: text.to_owned(),
+            id,
+        }
     }
 }
 
@@ -28,6 +31,10 @@ impl Representation for TextRepresentation {
     fn get_id(&self) -> Id {
         self.id
     }
+
+    fn is_equal(&self, other: &dyn Representation) -> bool {
+        self.get_type() == other.get_type() && self.get_text() == other.get_text()
+    }
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -38,10 +45,12 @@ pub struct TextTransformation {
 
 impl TextTransformation {
     pub fn new(text: &str, id: Id) -> Self {
-        TextTransformation{text: text.to_owned(), id}
+        TextTransformation {
+            text: text.to_owned(),
+            id,
+        }
     }
 }
-
 
 impl Transformation for TextTransformation {
     fn get_description(&self) -> &str {
@@ -61,7 +70,10 @@ pub struct TextLearnable {
 }
 impl TextLearnable {
     pub fn new(edges: &[TextEdge], id: Id) -> Self {
-        TextLearnable{edges: edges.to_vec(), id}
+        TextLearnable {
+            edges: edges.to_vec(),
+            id,
+        }
     }
 }
 
@@ -119,7 +131,10 @@ pub fn load_text_learnables(
         // Now, we can iterate through the learnables and connect all entries.
         let mut res: Vec<Box<dyn Learnable>> = vec![];
         for (i, relations) in storage.learnables.iter().enumerate() {
-            let mut learnable: TextLearnable = TextLearnable { id:i as Id + storage.id, ..Default::default()};
+            let mut learnable: TextLearnable = TextLearnable {
+                id: i as Id + storage.id,
+                ..Default::default()
+            };
             for (r1, t, r2) in relations.iter() {
                 let repr1 = representations.get(r1).ok_or_else(|| {
                     Box::new(std::io::Error::new(
@@ -139,7 +154,9 @@ pub fn load_text_learnables(
                         format!("Failed to find transform: {t}"),
                     ))
                 })?;
-                learnable.edges.push((repr1.clone(), tr.clone(), repr2.clone()));
+                learnable
+                    .edges
+                    .push((repr1.clone(), tr.clone(), repr2.clone()));
             }
             res.push(Box::new(learnable));
         }
@@ -158,15 +175,17 @@ pub fn save_text_learnables(
     id: Id,
     learnables: &[TextLearnable],
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let mut storage = TextLearnableStorage{name: name.to_owned(), id, ..Default::default()};
+    let mut storage = TextLearnableStorage {
+        name: name.to_owned(),
+        id,
+        ..Default::default()
+    };
     use std::collections::HashMap;
     let mut transforms: HashMap<Id, TextTransformation> = Default::default();
     let mut representations: HashMap<Id, TextRepresentation> = Default::default();
-    for learnable in learnables.iter()
-    {
+    for learnable in learnables.iter() {
         let mut edges = vec![];
-        for (r1, tr, r2) in learnable.edges.iter()
-        {
+        for (r1, tr, r2) in learnable.edges.iter() {
             representations.insert(r1.get_id(), r1.clone());
             representations.insert(r2.get_id(), r2.clone());
             transforms.insert(tr.get_id(), tr.clone());

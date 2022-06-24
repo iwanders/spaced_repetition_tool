@@ -21,7 +21,8 @@ pub trait Representation: std::fmt::Debug {
     /// This should not compare ID, instead it should compare the contents of the representation.
     fn is_equal(&self, other: &dyn Representation) -> bool;
 
-    /// Get the approximate equality of this representation and the other representation.
+    /// Get the approximate equality of this representation and the other representation. Must be
+    /// between 0.0 (completely wrong) and 1.0 (exactly equal).
     /// This should not compare ID, instead it should compare the contents of the representation.
     fn get_similarity(&self, other: &dyn Representation) -> Score {
         if self.is_equal(other) {

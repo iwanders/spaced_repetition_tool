@@ -6,6 +6,9 @@ pub enum RepresentationType {
 pub type Id = u128;
 pub type Score = f64;
 
+
+pub type MemorizerError = Box<dyn std::error::Error>;
+
 /// A partciular representation.
 pub trait Representation: std::fmt::Debug {
     /// Get the type of this presentation.
@@ -55,4 +58,26 @@ pub trait Learnable: std::fmt::Debug {
 
     /// Unique id for this learnable.
     fn get_id(&self) -> Id;
+}
+
+
+
+#[derive(Debug, PartialEq)]
+pub struct Record {
+    pub learnable: Id,
+
+    pub from: Id,
+    pub transform: Id,
+    pub to: Id,
+
+    pub score: Score,
+    pub time: std::time::SystemTime,
+}
+
+pub trait RecordKeeper : std::fmt::Debug {
+    /// Store an answer.
+    fn store_record(&mut self, record: &Record) -> Result<(), MemorizerError>;
+
+    /// Retrieve records by a learnable id.
+    fn get_records_by_id(&self, learnable: Id) -> Result<Vec<Record>, MemorizerError>;
 }

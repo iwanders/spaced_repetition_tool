@@ -1,11 +1,12 @@
-#[derive(Debug, PartialEq)]
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, PartialEq, Deserialize, Serialize)]
 pub enum RepresentationType {
     Text,
 }
 
 pub type Id = u128;
 pub type Score = f64;
-
 
 pub type MemorizerError = Box<dyn std::error::Error>;
 
@@ -60,9 +61,7 @@ pub trait Learnable: std::fmt::Debug {
     fn get_id(&self) -> Id;
 }
 
-
-
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Copy, Clone, Deserialize, Serialize)]
 pub struct Record {
     pub learnable: Id,
 
@@ -74,7 +73,8 @@ pub struct Record {
     pub time: std::time::SystemTime,
 }
 
-pub trait RecordKeeper : std::fmt::Debug {
+/// Something to track past performance.
+pub trait Recorder: std::fmt::Debug {
     /// Store an answer.
     fn store_record(&mut self, record: &Record) -> Result<(), MemorizerError>;
 

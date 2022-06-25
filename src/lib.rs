@@ -16,22 +16,5 @@ pub mod recorder;
 /// Algorithm things.
 pub mod algorithm;
 
-/*
-    Main flow;
-        Load Learnable
-        Load Recorder
-
-        Filter learnable based on rules.
-
-        Create Selector(learnables, recorder)
-
-        Get question
-        Present question
-        Obtain answer
-
-        store answer
-            -> Selector
-            -> Recorder
-
-        Go to get question.
-*/
+/// Implementor for a training loop.
+pub mod training;

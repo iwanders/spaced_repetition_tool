@@ -7,17 +7,16 @@ pub struct DummySelector {
 
 impl Selector for DummySelector {
     /// Constructor, takes recorder of past event and a set of learnables.
-    fn new(
-        questions: &[Question],
-        recorder: &dyn Recorder,
-    ) -> Result<Box<dyn Selector>, MemorizerError> {
+    fn new(questions: &[Question], recorder: &dyn Recorder) -> Box<dyn Selector> {
         let mut edges = vec![];
         for q in questions.iter() {
-            let records = recorder.get_records_by_learnable(q.learnable)?;
+            let records = recorder
+                .get_records_by_learnable(q.learnable)
+                .expect("Should return empty if unknown");
             let scores = records.iter().map(|x| x.score).collect::<_>();
             edges.push((*q, scores));
         }
-        Ok(Box::new(DummySelector { edges }))
+        Box::new(DummySelector { edges })
     }
 
     /// Retrieve a question to ask.

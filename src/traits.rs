@@ -93,10 +93,7 @@ pub trait Recorder: std::fmt::Debug {
 /// The entity that decided what questions to ask. Only works on Ids.
 pub trait Selector: std::fmt::Debug {
     /// Constructor, takes recorder of past event and a set of learnables.
-    fn new(
-        questions: &[Question],
-        recorder: &dyn Recorder,
-    ) -> Result<Box<dyn Selector>, MemorizerError>
+    fn new(questions: &[Question], recorder: &dyn Recorder) -> Box<dyn Selector>
     where
         Self: Sized;
 

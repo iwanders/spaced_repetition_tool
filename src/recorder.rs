@@ -25,11 +25,11 @@ impl Recorder for MemoryRecorder {
         Ok(())
     }
 
-    fn get_records_by_id(&self, learnable: Id) -> Result<Vec<Record>, MemorizerError> {
+    fn get_records_by_learnable(&self, learnable: Id) -> Result<Vec<Record>, MemorizerError> {
         Ok(self
             .records
             .iter()
-            .filter(|z| z.learnable == learnable)
+            .filter(|z| z.question.learnable == learnable)
             .map(|z| *z)
             .collect::<_>())
     }

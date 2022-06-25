@@ -12,3 +12,26 @@ pub mod text;
 
 /// Simple implementation to keep records
 pub mod recorder;
+
+/// Algorithm things.
+pub mod algorithm;
+
+/*
+    Main flow;
+        Load Learnable
+        Load Recorder
+
+        Filter learnable based on rules.
+
+        Create Selector(learnables, recorder)
+
+        Get question
+        Present question
+        Obtain answer
+
+        store answer
+            -> Selector
+            -> Recorder
+
+        Go to get question.
+*/

@@ -47,28 +47,36 @@ pub trait Transformation: std::fmt::Debug {
 }
 
 pub type LearnableEdge<'a> = (
-    Box<&'a dyn Representation>,
-    Box<&'a dyn Transformation>,
-    Box<&'a dyn Representation>,
+    &'a dyn Representation,
+    &'a dyn Transformation,
+    &'a dyn Representation,
 );
 
-/// Something that relates transformations and representations to each other.
+/// Something that relates transformations and representations to each other. This owns the
+/// representations and transforms.
 pub trait Learnable: std::fmt::Debug {
     /// Get the possible edges for this learnable.
     fn get_edges(&self) -> Vec<LearnableEdge>;
+
+    /// Retrieve a questions' true representation.
+    fn get_question(&self, question: &Question) -> LearnableEdge;
 
     /// Unique id for this learnable.
     fn get_id(&self) -> Id;
 }
 
 #[derive(Debug, PartialEq, Copy, Clone, Deserialize, Serialize)]
-pub struct Record {
+pub struct Question {
     pub learnable: Id,
 
     pub from: Id,
     pub transform: Id,
     pub to: Id,
+}
 
+#[derive(Debug, PartialEq, Copy, Clone, Deserialize, Serialize)]
+pub struct Record {
+    pub question: Question,
     pub score: Score,
     pub time: std::time::SystemTime,
 }
@@ -79,5 +87,22 @@ pub trait Recorder: std::fmt::Debug {
     fn store_record(&mut self, record: &Record) -> Result<(), MemorizerError>;
 
     /// Retrieve records by a learnable id.
-    fn get_records_by_id(&self, learnable: Id) -> Result<Vec<Record>, MemorizerError>;
+    fn get_records_by_learnable(&self, learnable: Id) -> Result<Vec<Record>, MemorizerError>;
+}
+
+/// The entity that decided what questions to ask. Only works on Ids.
+pub trait Selector: std::fmt::Debug {
+    /// Constructor, takes recorder of past event and a set of learnables.
+    fn new(
+        questions: &[Question],
+        recorder: &dyn Recorder,
+    ) -> Result<Box<dyn Selector>, MemorizerError>
+    where
+        Self: Sized;
+
+    /// Retrieve a question to ask.
+    fn get_question(&mut self) -> Question;
+
+    /// Store answer to a question, not guaranteed to be in sync with get_question.
+    fn store_record(&mut self, record: &Record);
 }

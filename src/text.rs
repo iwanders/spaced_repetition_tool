@@ -83,12 +83,29 @@ impl Learnable for TextLearnable {
             .iter()
             .map(|z| {
                 (
-                    Box::new(&z.0 as &dyn Representation),
-                    Box::new(&z.1 as &dyn Transformation),
-                    Box::new(&z.2 as &dyn Representation),
+                    &z.0 as &dyn Representation,
+                    &z.1 as &dyn Transformation,
+                    &z.2 as &dyn Representation,
                 )
             })
             .collect::<_>()
+    }
+
+    fn get_question(&self, question: &Question) -> LearnableEdge {
+        for e in self.edges.iter() {
+            if e.0.get_id() == question.from
+                && e.1.get_id() == question.transform
+                && e.2.get_id() == question.to
+            {
+                return (
+                    &e.0 as &dyn Representation,
+                    &e.1 as &dyn Transformation,
+                    &e.2 as &dyn Representation,
+                );
+            }
+        }
+
+        panic!("Requested edge that doesn't exist.");
     }
 
     fn get_id(&self) -> Id {

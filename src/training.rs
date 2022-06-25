@@ -21,10 +21,10 @@ Implements the generic flow;
 
         Go to get question.
 */
-use std::cell::RefCell;
+
 pub struct Training {
     learnables: Vec<Box<dyn Learnable>>,
-    recorder: RefCell<Box<dyn Recorder>>,
+    recorder: Box<dyn Recorder>,
     selector: Box<dyn Selector>,
 }
 
@@ -46,7 +46,7 @@ impl Training {
         let selector = DummySelector::new(&questions, &*recorder);
         Training {
             learnables,
-            recorder: RefCell::new(recorder),
+            recorder: recorder,
             selector,
         }
     }
@@ -80,7 +80,7 @@ impl Training {
             score,
             time,
         };
-        self.recorder.get_mut().store_record(&record)?;
+        self.recorder.store_record(&record)?;
         self.selector.store_record(&record);
         Ok(())
     }

@@ -9,10 +9,10 @@ pub struct MemoryRecorder {
 }
 
 impl MemoryRecorder {
-    fn new() -> Self {
+    pub fn new() -> Self {
         MemoryRecorder { records: vec![] }
     }
-    fn from(records: &[Record]) -> Self {
+    pub fn from(records: &[Record]) -> Self {
         MemoryRecorder {
             records: records.to_vec(),
         }

@@ -60,7 +60,7 @@ pub trait Transform: std::fmt::Debug {
     fn id(&self) -> TransformId;
 }
 
-#[derive(Debug, PartialEq, Copy, Clone, Deserialize, Serialize)]
+#[derive(Debug, PartialEq, Copy, Clone, Deserialize, Serialize, Default)]
 pub struct Question {
     pub learnable: LearnableId,
 

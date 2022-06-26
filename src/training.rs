@@ -80,13 +80,13 @@ impl Training {
     pub fn answer(
         &mut self,
         question: &Question,
-        answer: Box<dyn Representation>,
-    ) -> Result<(), MemorizerError> {
+        given_answer: std::rc::Rc<dyn Representation>,
+    ) -> Result<(Score, std::rc::Rc<dyn Representation>), MemorizerError> {
         let representation = self
             .representations
             .get(&question.to)
             .expect("Should exist");
-        let score = representation.get_similarity(&*answer);
+        let score = representation.get_similarity(&*given_answer);
         let time = std::time::SystemTime::now();
         let record = Record {
             question: *question,
@@ -95,6 +95,6 @@ impl Training {
         };
         self.recorder.store_record(&record)?;
         self.selector.store_record(&record);
-        Ok(())
+        Ok((score, representation.clone()))
     }
 }

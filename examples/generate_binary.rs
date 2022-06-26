@@ -7,9 +7,9 @@ use memorizer::traits::{TransformId, RepresentationId, LearnableId};
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut learnables = vec![];
     let mut id_base = 1655854159 << 16; // Totally legit unique number!
-    let to_bin = TextTransform::new("binary to decimal", TransformId(id_base));
+    let to_bin = TextTransform::new("decimal to binary  (4 bits)", TransformId(id_base));
     id_base += 1;
-    let to_dec = TextTransform::new("decimal to binary", TransformId(id_base));
+    let to_dec = TextTransform::new("binary to decimal", TransformId(id_base));
     id_base += 1;
 
     for i in 0..16 {

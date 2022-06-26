@@ -23,7 +23,8 @@ Implements the generic flow;
 */
 
 pub struct Training {
-    // learnables: Vec<Box<dyn Learnable>>,
+    learnables: Vec<Box<dyn Learnable>>,
+    questions: Vec<Question>,
     recorder: Box<dyn Recorder>,
     selector: Box<dyn Selector>,
     transforms: std::collections::HashMap<TransformId, std::rc::Rc<dyn Transform>>,
@@ -48,15 +49,27 @@ impl Training {
                 questions.push(*e);
             }
         }
-        // make selector
-        let selector = DummySelector::new(&questions, &*recorder);
+
+        let mut selector = Box::new(DummySelector::new());
+        selector.set_questions(&questions, &*recorder);
         Training {
-            // learnables,
+            learnables,
+            questions,
             recorder: recorder,
             selector,
             transforms,
             representations,
         }
+    }
+
+    pub fn update_selector(&mut self) {
+        self.selector.set_questions(&self.questions, &*self.recorder);
+    }
+
+    pub fn set_selector(&mut self, selector: Box<dyn Selector>)
+    {
+        self.selector = selector;
+        self.update_selector();
     }
 
     pub fn question(&mut self) -> Question {

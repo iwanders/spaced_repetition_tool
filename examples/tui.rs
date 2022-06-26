@@ -4,7 +4,7 @@
 use memorizer::recorder::{MemoryRecorder, YamlRecorder};
 use memorizer::text::{load_text_learnables, TextRepresentation};
 use memorizer::training::Training;
-use memorizer::traits::{Score, Question, RepresentationId};
+use memorizer::traits::{Question, RepresentationId, Score};
 
 use std::rc::Rc;
 
@@ -33,7 +33,6 @@ enum ApplicationState {
 
 /// App holds the state of the application
 struct App {
-
     state: ApplicationState,
 
     /// Source representation
@@ -59,7 +58,6 @@ struct App {
 
     /// The current question:
     question: Question,
-    
 }
 
 impl App {
@@ -90,7 +88,10 @@ impl App {
     fn process_answer(&mut self) {
         // do something with the current input.
         let z = Rc::new(TextRepresentation::new(&self.input, RepresentationId(0)));
-        let (score, truth) = self.training.answer(&self.question, z).expect("should succeed");
+        let (score, truth) = self
+            .training
+            .answer(&self.question, z)
+            .expect("should succeed");
         self.answer_score = score;
         self.answer_correct = score == 1.0;
         self.answer = truth.text().to_string();
@@ -100,15 +101,22 @@ impl App {
     fn populate_new(&mut self) {
         self.clear_fields();
         self.question = self.training.question();
-        self.original = self.training.representation(self.question.from).text().to_string();
-        self.transform = self.training.transform(self.question.transform).description().to_string();
+        self.original = self
+            .training
+            .representation(self.question.from)
+            .text()
+            .to_string();
+        self.transform = self
+            .training
+            .transform(self.question.transform)
+            .description()
+            .to_string();
         self.input.clear();
         self.state = ApplicationState::QuestionAsked;
     }
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-
     // create app and run it
     let mut app = App::new()?;
     app.populate_new();
@@ -144,24 +152,21 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: App) -> io::Result<(
                 KeyCode::Enter => {
                     //app.messages.push(app.input.drain(..).collect());
                     match app.state {
-                        ApplicationState::QuestionAsked =>  {
+                        ApplicationState::QuestionAsked => {
                             app.process_answer();
-                        },
-                        ApplicationState::AnswerGiven =>  {
+                        }
+                        ApplicationState::AnswerGiven => {
                             app.populate_new();
-                        },
+                        }
                     }
-                    
                 }
                 KeyCode::Char(c) => {
-                    if app.state == ApplicationState::QuestionAsked
-                    {
+                    if app.state == ApplicationState::QuestionAsked {
                         app.input.push(c);
                     }
                 }
                 KeyCode::Backspace => {
-                    if app.state == ApplicationState::QuestionAsked
-                    {
+                    if app.state == ApplicationState::QuestionAsked {
                         app.input.pop();
                     }
                 }
@@ -225,17 +230,14 @@ fn ui<B: Backend>(f: &mut Frame<B>, app: &App) {
     match app.state {
         ApplicationState::QuestionAsked => {
             input_style = Style::default().fg(Color::Yellow);
-        },
+        }
         ApplicationState::AnswerGiven => {
-            if app.answer_correct
-            {
+            if app.answer_correct {
                 input_style = Style::default().fg(Color::Green);
-            }
-            else
-            {
+            } else {
                 input_style = Style::default().fg(Color::Red);
             }
-        },
+        }
     }
 
     let input = Paragraph::new(app.input.as_ref())
@@ -244,8 +246,7 @@ fn ui<B: Backend>(f: &mut Frame<B>, app: &App) {
         .block(Block::default());
     f.render_widget(input, chunks[INPUT]);
 
-    if !app.answer_correct
-    {
+    if !app.answer_correct {
         let answer = Paragraph::new(app.answer.as_ref())
             .alignment(tui::layout::Alignment::Center)
             .block(Block::default());

@@ -73,7 +73,6 @@ impl YamlRecorder {
         serde_yaml::to_writer(file, &self.recorder)?;
         Ok(())
     }
-
 }
 
 impl Recorder for YamlRecorder {

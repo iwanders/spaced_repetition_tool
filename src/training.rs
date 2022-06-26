@@ -63,11 +63,11 @@ impl Training {
     }
 
     pub fn update_selector(&mut self) {
-        self.selector.set_questions(&self.questions, &*self.recorder);
+        self.selector
+            .set_questions(&self.questions, &*self.recorder);
     }
 
-    pub fn set_selector(&mut self, selector: Box<dyn Selector>)
-    {
+    pub fn set_selector(&mut self, selector: Box<dyn Selector>) {
         self.selector = selector;
         self.update_selector();
     }

@@ -5,17 +5,13 @@ pub struct DummySelector {
     edges: Vec<(Question, Vec<Score>)>,
 }
 impl DummySelector {
-
     pub fn new() -> Self {
         DummySelector { edges: vec![] }
     }
-
 }
 
 impl Selector for DummySelector {
-
-    fn set_questions(&mut self, questions: &[Question], recorder: &dyn Recorder)
-    {
+    fn set_questions(&mut self, questions: &[Question], recorder: &dyn Recorder) {
         self.edges.clear();
         for q in questions.iter() {
             let records = recorder
@@ -37,5 +33,3 @@ impl Selector for DummySelector {
     /// Store answer to a question.
     fn store_record(&mut self, _record: &Record) {}
 }
-
-

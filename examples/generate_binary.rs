@@ -1,8 +1,5 @@
-use memorizer::text::{
-    save_text_learnables, TextLearnable, TextRepresentation, TextTransform,
-};
-use memorizer::traits::{TransformId, RepresentationId, LearnableId};
-
+use memorizer::text::{save_text_learnables, TextLearnable, TextRepresentation, TextTransform};
+use memorizer::traits::{LearnableId, RepresentationId, TransformId};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut learnables = vec![];

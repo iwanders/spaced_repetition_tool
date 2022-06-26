@@ -57,13 +57,18 @@ impl App {
 
     fn populate_new(&mut self) {
         let new_q = self.training.question();
-        self.original = new_q.0.get_text().to_string();
-        self.transform = new_q.1.get_description().to_string();
+        self.original = self.training.representation(new_q.from).text().to_string();
+        self.transform = self.training.transform(new_q.transform).description().to_string();
         self.input.clear();
     }
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
+
+    // create app and run it
+    let mut app = App::new()?;
+    app.populate_new();
+
     // setup terminal
     enable_raw_mode()?;
     let mut stdout = io::stdout();
@@ -71,9 +76,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
 
-    // create app and run it
-    let mut app = App::new()?;
-    app.populate_new();
+    // Now run the application.
     let res = run_app(&mut terminal, app);
 
     // restore terminal

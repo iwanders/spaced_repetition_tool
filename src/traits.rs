@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::rc::Rc;
 
 #[derive(Debug, PartialEq, Deserialize, Serialize)]
 pub enum RepresentationType {
@@ -6,6 +7,19 @@ pub enum RepresentationType {
 }
 
 pub type Id = u128;
+
+#[derive(Debug, Eq, Hash, PartialEq, Deserialize, Serialize, Copy, Clone, Default)]
+#[serde(transparent)]
+pub struct LearnableId(pub Id);
+
+#[derive(Debug, Eq, Hash, PartialEq, Deserialize, Serialize, Copy, Clone, Default)]
+#[serde(transparent)]
+pub struct RepresentationId(pub Id);
+
+#[derive(Debug, Eq, Hash, PartialEq, Deserialize, Serialize, Copy, Clone, Default)]
+#[serde(transparent)]
+pub struct TransformId(pub Id);
+
 pub type Score = f64;
 
 pub type MemorizerError = Box<dyn std::error::Error>;
@@ -16,10 +30,10 @@ pub trait Representation: std::fmt::Debug {
     fn get_type(&self) -> RepresentationType;
 
     /// Get the textual representation.
-    fn get_text(&self) -> &str;
+    fn text(&self) -> &str;
 
     /// Unique id for this representation.
-    fn get_id(&self) -> Id;
+    fn id(&self) -> RepresentationId;
 
     /// Check if this representation is identical to another representation.
     /// This should not compare ID, instead it should compare the contents of the representation.
@@ -38,40 +52,34 @@ pub trait Representation: std::fmt::Debug {
 }
 
 /// A transformation, like Hex->Binary or 'Translate from A into B'
-pub trait Transformation: std::fmt::Debug {
+pub trait Transform: std::fmt::Debug {
     /// A string describing the particular transformation to be performed.
-    fn get_description(&self) -> &str;
+    fn description(&self) -> &str;
 
     /// Unique id for this Transformation.
-    fn get_id(&self) -> Id;
+    fn id(&self) -> TransformId;
 }
 
-pub type LearnableEdge<'a> = (
-    &'a dyn Representation,
-    &'a dyn Transformation,
-    &'a dyn Representation,
-);
+#[derive(Debug, PartialEq, Copy, Clone, Deserialize, Serialize)]
+pub struct Question {
+    pub learnable: LearnableId,
+
+    pub from: RepresentationId,
+    pub transform: TransformId,
+    pub to: RepresentationId,
+}
 
 /// Something that relates transformations and representations to each other. This owns the
 /// representations and transforms.
 pub trait Learnable: std::fmt::Debug {
     /// Get the possible edges for this learnable.
-    fn get_edges(&self) -> Vec<LearnableEdge>;
+    fn edges(&self) -> Vec<Question>;
 
-    /// Retrieve a questions' true representation.
-    fn get_question(&self, question: &Question) -> LearnableEdge;
+    fn representation(&self, id: RepresentationId) -> Rc<dyn Representation>;
+    fn transform(&self, transform: TransformId) -> Rc<dyn Transform>;
 
     /// Unique id for this learnable.
-    fn get_id(&self) -> Id;
-}
-
-#[derive(Debug, PartialEq, Copy, Clone, Deserialize, Serialize)]
-pub struct Question {
-    pub learnable: Id,
-
-    pub from: Id,
-    pub transform: Id,
-    pub to: Id,
+    fn id(&self) -> LearnableId;
 }
 
 #[derive(Debug, PartialEq, Copy, Clone, Deserialize, Serialize)]
@@ -87,7 +95,10 @@ pub trait Recorder: std::fmt::Debug {
     fn store_record(&mut self, record: &Record) -> Result<(), MemorizerError>;
 
     /// Retrieve records by a learnable id.
-    fn get_records_by_learnable(&self, learnable: Id) -> Result<Vec<Record>, MemorizerError>;
+    fn get_records_by_learnable(
+        &self,
+        learnable: LearnableId,
+    ) -> Result<Vec<Record>, MemorizerError>;
 }
 
 /// The entity that decided what questions to ask. Only works on Ids.

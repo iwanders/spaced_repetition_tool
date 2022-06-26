@@ -23,43 +23,58 @@ Implements the generic flow;
 */
 
 pub struct Training {
-    learnables: Vec<Box<dyn Learnable>>,
+    // learnables: Vec<Box<dyn Learnable>>,
     recorder: Box<dyn Recorder>,
     selector: Box<dyn Selector>,
+    transforms: std::collections::HashMap<TransformId, std::rc::Rc<dyn Transform>>,
+    representations: std::collections::HashMap<RepresentationId, std::rc::Rc<dyn Representation>>,
 }
 
 impl Training {
     pub fn new(learnables: Vec<Box<dyn Learnable>>, recorder: Box<dyn Recorder>) -> Self {
+        let mut transforms: std::collections::HashMap<TransformId, std::rc::Rc<dyn Transform>> =
+            Default::default();
+        let mut representations: std::collections::HashMap<
+            RepresentationId,
+            std::rc::Rc<dyn Representation>,
+        > = Default::default();
         // Collect questions;
         let mut questions = vec![];
         for l in learnables.iter() {
-            for e in l.get_edges().iter() {
-                questions.push(Question {
-                    learnable: l.get_id(),
-                    from: e.0.get_id(),
-                    transform: e.1.get_id(),
-                    to: e.2.get_id(),
-                });
+            for e in l.edges().iter() {
+                transforms.insert(e.transform, l.transform(e.transform));
+                representations.insert(e.from, l.representation(e.from));
+                representations.insert(e.to, l.representation(e.to));
+                questions.push(*e);
             }
         }
         // make selector
         let selector = DummySelector::new(&questions, &*recorder);
         Training {
-            learnables,
+            // learnables,
             recorder: recorder,
             selector,
+            transforms,
+            representations,
         }
     }
 
-    pub fn question(&mut self) -> LearnableEdge {
-        let q = self.selector.get_question();
-        // Find the actual representation.
-        let learnable = self
-            .learnables
-            .iter()
-            .find(|z| z.get_id() == q.learnable)
-            .expect("Should be present");
-        learnable.get_question(&q)
+    pub fn question(&mut self) -> Question {
+        self.selector.get_question()
+    }
+
+    pub fn representation(&self, id: RepresentationId) -> std::rc::Rc<dyn Representation> {
+        self.representations
+            .get(&id)
+            .expect("Requested id must exist")
+            .clone()
+    }
+
+    pub fn transform(&self, id: TransformId) -> std::rc::Rc<dyn Transform> {
+        self.transforms
+            .get(&id)
+            .expect("Requested id must exist")
+            .clone()
     }
 
     pub fn answer(
@@ -67,12 +82,10 @@ impl Training {
         question: &Question,
         answer: Box<dyn Representation>,
     ) -> Result<(), MemorizerError> {
-        let learnable = self
-            .learnables
-            .iter()
-            .find(|z| z.get_id() == question.learnable)
-            .expect("Should be present");
-        let representation = learnable.get_question(&question).2;
+        let representation = self
+            .representations
+            .get(&question.to)
+            .expect("Should exist");
         let score = representation.get_similarity(&*answer);
         let time = std::time::SystemTime::now();
         let record = Record {

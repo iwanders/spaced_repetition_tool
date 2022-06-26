@@ -1,6 +1,6 @@
 // Just a simple implementation for the Recorder trait.
 
-use crate::traits::{Id, MemorizerError, Record, Recorder};
+use crate::traits::{LearnableId, MemorizerError, Record, Recorder};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -25,7 +25,10 @@ impl Recorder for MemoryRecorder {
         Ok(())
     }
 
-    fn get_records_by_learnable(&self, learnable: Id) -> Result<Vec<Record>, MemorizerError> {
+    fn get_records_by_learnable(
+        &self,
+        learnable: LearnableId,
+    ) -> Result<Vec<Record>, MemorizerError> {
         Ok(self
             .records
             .iter()

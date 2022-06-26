@@ -7,14 +7,21 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct TextRepresentation {
     text: String,
-    id: Id,
+    id: RepresentationId,
 }
 
 impl TextRepresentation {
-    pub fn new(text: &str, id: Id) -> Self {
+    pub fn new(text: &str, id: RepresentationId) -> Self {
         TextRepresentation {
             text: text.to_owned(),
             id,
+        }
+    }
+
+    pub fn from(other: std::rc::Rc<dyn Representation>) -> Self {
+        TextRepresentation {
+            text: other.text().to_string(),
+            id: other.id(),
         }
     }
 }
@@ -24,91 +31,103 @@ impl Representation for TextRepresentation {
         RepresentationType::Text
     }
 
-    fn get_text(&self) -> &str {
+    fn text(&self) -> &str {
         &self.text
     }
 
-    fn get_id(&self) -> Id {
+    fn id(&self) -> RepresentationId {
         self.id
     }
 
     fn is_equal(&self, other: &dyn Representation) -> bool {
-        self.get_type() == other.get_type() && self.get_text() == other.get_text()
+        self.get_type() == other.get_type() && self.text() == other.text()
     }
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct TextTransformation {
+pub struct TextTransform {
     text: String,
-    id: Id,
+    id: TransformId,
 }
 
-impl TextTransformation {
-    pub fn new(text: &str, id: Id) -> Self {
-        TextTransformation {
+impl TextTransform {
+    pub fn new(text: &str, id: TransformId) -> Self {
+        TextTransform {
             text: text.to_owned(),
             id,
         }
     }
+    pub fn from(other: std::rc::Rc<dyn Transform>) -> Self {
+        TextTransform {
+            text: other.description().to_string(),
+            id: other.id(),
+        }
+    }
 }
 
-impl Transformation for TextTransformation {
-    fn get_description(&self) -> &str {
+impl Transform for TextTransform {
+    fn description(&self) -> &str {
         &self.text
     }
 
-    fn get_id(&self) -> Id {
+    fn id(&self) -> TransformId {
         self.id
     }
 }
 
-type TextEdge = (TextRepresentation, TextTransformation, TextRepresentation);
-#[derive(Debug, Default, Clone, Deserialize, Serialize)]
+type TextEdge = (TextRepresentation, TextTransform, TextRepresentation);
+
+#[derive(Debug, Default, Clone)]
 pub struct TextLearnable {
-    edges: Vec<TextEdge>,
-    id: Id,
+    representations: std::collections::HashMap<RepresentationId, std::rc::Rc<TextRepresentation>>,
+    transforms: std::collections::HashMap<TransformId, std::rc::Rc<TextTransform>>,
+    edges: Vec<Question>,
+    id: LearnableId,
 }
 impl TextLearnable {
-    pub fn new(edges: &[TextEdge], id: Id) -> Self {
-        TextLearnable {
-            edges: edges.to_vec(),
+    pub fn new(edges: &[TextEdge], id: LearnableId) -> Self {
+        let mut res = TextLearnable {
             id,
+            ..Default::default()
+        };
+        for (r1, transform, r2) in edges.iter() {
+            res.representations
+                .insert(r1.id(), std::rc::Rc::new(r1.clone()));
+            res.representations
+                .insert(r2.id(), std::rc::Rc::new(r2.clone()));
+            res.transforms
+                .insert(transform.id(), std::rc::Rc::new(transform.clone()));
+            res.edges.push(Question {
+                learnable: id,
+                from: r1.id(),
+                transform: transform.id(),
+                to: r2.id(),
+            });
         }
+        res
     }
 }
-
 impl Learnable for TextLearnable {
-    fn get_edges(&self) -> Vec<LearnableEdge> {
-        self.edges
-            .iter()
-            .map(|z| {
-                (
-                    &z.0 as &dyn Representation,
-                    &z.1 as &dyn Transformation,
-                    &z.2 as &dyn Representation,
-                )
-            })
-            .collect::<_>()
+    fn edges(&self) -> Vec<Question> {
+        self.edges.clone()
     }
 
-    fn get_question(&self, question: &Question) -> LearnableEdge {
-        for e in self.edges.iter() {
-            if e.0.get_id() == question.from
-                && e.1.get_id() == question.transform
-                && e.2.get_id() == question.to
-            {
-                return (
-                    &e.0 as &dyn Representation,
-                    &e.1 as &dyn Transformation,
-                    &e.2 as &dyn Representation,
-                );
-            }
-        }
-
-        panic!("Requested edge that doesn't exist.");
+    fn representation(&self, id: RepresentationId) -> std::rc::Rc<dyn Representation> {
+        self.representations
+            .get(&id)
+            .expect("Requested id must exist")
+            .clone()
     }
 
-    fn get_id(&self) -> Id {
+    fn transform(&self, id: TransformId) -> std::rc::Rc<dyn Transform> {
+        self.transforms
+            .get(&id)
+            .expect("Requested id must exist")
+            .clone()
+    }
+
+    /// Unique id for this learnable.
+    fn id(&self) -> LearnableId {
         self.id
     }
 }
@@ -118,9 +137,9 @@ impl Learnable for TextLearnable {
 pub struct TextLearnableStorage {
     name: String,
     id: Id,
-    transformations: Vec<TextTransformation>,
+    transformations: Vec<TextTransform>,
     representations: Vec<TextRepresentation>,
-    learnables: Vec<Vec<(Id, Id, Id)>>,
+    learnables: Vec<Vec<(RepresentationId, TransformId, RepresentationId)>>,
 }
 
 pub fn load_text_learnables(
@@ -137,44 +156,42 @@ pub fn load_text_learnables(
         let transforms = storage
             .transformations
             .iter()
-            .map(|z| (z.get_id(), z.clone()))
-            .collect::<HashMap<Id, TextTransformation>>();
+            .map(|z| (z.id(), z.clone()))
+            .collect::<HashMap<TransformId, TextTransform>>();
         let representations = storage
             .representations
             .iter()
-            .map(|z| (z.get_id(), z.clone()))
-            .collect::<HashMap<Id, TextRepresentation>>();
+            .map(|z| (z.id(), z.clone()))
+            .collect::<HashMap<RepresentationId, TextRepresentation>>();
 
         // Now, we can iterate through the learnables and connect all entries.
         let mut res: Vec<Box<dyn Learnable>> = vec![];
         for (i, relations) in storage.learnables.iter().enumerate() {
-            let mut learnable: TextLearnable = TextLearnable {
-                id: i as Id + storage.id,
-                ..Default::default()
-            };
+            let mut edges = vec![];
+
             for (r1, t, r2) in relations.iter() {
                 let repr1 = representations.get(r1).ok_or_else(|| {
                     Box::new(std::io::Error::new(
                         std::io::ErrorKind::Other,
-                        format!("Failed to find representation: {r1}"),
+                        format!("Failed to find representation: {r1:?}"),
                     ))
                 })?;
                 let repr2 = representations.get(r2).ok_or_else(|| {
                     Box::new(std::io::Error::new(
                         std::io::ErrorKind::Other,
-                        format!("Failed to find representation: {r2}"),
+                        format!("Failed to find representation: {r2:?}"),
                     ))
                 })?;
                 let tr = transforms.get(t).ok_or_else(|| {
                     Box::new(std::io::Error::new(
                         std::io::ErrorKind::Other,
-                        format!("Failed to find transform: {t}"),
+                        format!("Failed to find transform: {t:?}"),
                     ))
                 })?;
-                learnable
-                    .edges
-                    .push((repr1.clone(), tr.clone(), repr2.clone()));
+                edges.push((repr1.clone(), tr.clone(), repr2.clone()));
             }
+            let learnable = TextLearnable::new(&edges, LearnableId(i as Id + storage.id));
+
             res.push(Box::new(learnable));
         }
 
@@ -198,15 +215,24 @@ pub fn save_text_learnables(
         ..Default::default()
     };
     use std::collections::HashMap;
-    let mut transforms: HashMap<Id, TextTransformation> = Default::default();
-    let mut representations: HashMap<Id, TextRepresentation> = Default::default();
+    let mut transforms: HashMap<TransformId, TextTransform> = Default::default();
+    let mut representations: HashMap<RepresentationId, TextRepresentation> = Default::default();
     for learnable in learnables.iter() {
         let mut edges = vec![];
-        for (r1, tr, r2) in learnable.edges.iter() {
-            representations.insert(r1.get_id(), r1.clone());
-            representations.insert(r2.get_id(), r2.clone());
-            transforms.insert(tr.get_id(), tr.clone());
-            edges.push((r1.get_id(), tr.get_id(), r2.get_id()));
+        for q in learnable.edges.iter() {
+            representations.insert(
+                q.from,
+                TextRepresentation::from(learnable.representation(q.from)),
+            );
+            representations.insert(
+                q.to,
+                TextRepresentation::from(learnable.representation(q.to)),
+            );
+            transforms.insert(
+                q.transform,
+                TextTransform::from(learnable.transform(q.transform)),
+            );
+            edges.push((q.from, q.transform, q.to));
         }
         storage.learnables.push(edges);
     }

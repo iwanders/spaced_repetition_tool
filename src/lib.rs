@@ -7,14 +7,14 @@
 /// Main traits
 pub mod traits;
 
-/// Simple implementation for text
+// / Simple implementation for text
 pub mod text;
 
-/// Simple implementation to keep records
+// / Simple implementation to keep records
 pub mod recorder;
 
-/// Algorithm things.
+// / Algorithm things.
 pub mod algorithm;
 
-/// Implementor for a training loop.
+// / Implementor for a training loop.
 pub mod training;

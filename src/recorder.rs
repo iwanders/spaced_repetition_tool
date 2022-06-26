@@ -3,7 +3,7 @@
 use crate::traits::{LearnableId, MemorizerError, Record, Recorder};
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Default)]
 pub struct MemoryRecorder {
     records: Vec<Record>,
 }
@@ -35,5 +35,57 @@ impl Recorder for MemoryRecorder {
             .filter(|z| z.question.learnable == learnable)
             .map(|z| *z)
             .collect::<_>())
+    }
+}
+
+#[derive(Debug)]
+pub struct YamlRecorder {
+    recorder: MemoryRecorder,
+    filename: String,
+}
+impl YamlRecorder {
+    pub fn new(filename: &str) -> Result<Self, MemorizerError> {
+        // Read from file if it exists, else empty.
+        let recorder: MemoryRecorder;
+
+        if std::path::Path::new(filename).exists() {
+            let file = std::fs::File::open(filename).expect("file should be opened");
+            let yaml: serde_yaml::Value = serde_yaml::from_reader(file)?;
+            recorder = serde_yaml::from_value(yaml)?;
+        } else {
+            recorder = Default::default();
+        }
+
+        Ok(YamlRecorder {
+            filename: filename.to_owned(),
+            recorder,
+        })
+    }
+
+    pub fn write(&mut self) -> Result<(), MemorizerError> {
+        // Flush to disk.
+        use std::fs::OpenOptions;
+        let file = OpenOptions::new()
+            .create(true)
+            .write(true)
+            .truncate(true)
+            .open(&self.filename)?;
+        serde_yaml::to_writer(file, &self.recorder)?;
+        Ok(())
+    }
+
+}
+
+impl Recorder for YamlRecorder {
+    fn store_record(&mut self, record: &Record) -> Result<(), MemorizerError> {
+        self.recorder.store_record(record)?;
+        self.write()
+    }
+
+    fn get_records_by_learnable(
+        &self,
+        learnable: LearnableId,
+    ) -> Result<Vec<Record>, MemorizerError> {
+        self.recorder.get_records_by_learnable(learnable)
     }
 }

@@ -1,7 +1,7 @@
 // Hacked up from
 // https://github.com/fdehau/tui-rs/blob/v0.18.0/examples/user_input.rs
 
-use memorizer::recorder::MemoryRecorder;
+use memorizer::recorder::{MemoryRecorder, YamlRecorder};
 use memorizer::text::{load_text_learnables, TextRepresentation};
 use memorizer::training::Training;
 use memorizer::traits::{Score, Question, RepresentationId};
@@ -65,7 +65,7 @@ struct App {
 impl App {
     fn new() -> Result<App, Box<dyn Error>> {
         let learnables = load_text_learnables("/tmp/output.yaml")?;
-        let recorder = MemoryRecorder::new();
+        let recorder = YamlRecorder::new("/tmp/log.yaml")?;
         let training = Training::new(learnables, Box::new(recorder));
         Ok(App {
             input: String::new(),

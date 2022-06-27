@@ -8,6 +8,8 @@ license = "MIT OR Apache-2.0"
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
 serde_yaml = "0.8.17"
+rand = "0.8.5"
+rand_distr =  "0.4.3"
 
 [dev-dependencies]
 tui = "0.18.0"

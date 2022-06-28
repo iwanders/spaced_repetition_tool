@@ -186,6 +186,12 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: App) -> io::Result<(
 }
 
 fn ui<B: Backend>(f: &mut Frame<B>, app: &App) {
+    let vertical_split = Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints([
+                Constraint::Percentage(30),
+                Constraint::Percentage(70),].as_ref())
+        .split(f.size());
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints(
@@ -201,7 +207,7 @@ fn ui<B: Backend>(f: &mut Frame<B>, app: &App) {
             ]
             .as_ref(),
         )
-        .split(f.size());
+        .split(vertical_split[1]);
 
     const FROM: usize = 1;
     const TRANSFORM: usize = 3;
@@ -220,15 +226,15 @@ fn ui<B: Backend>(f: &mut Frame<B>, app: &App) {
     let mut text = Text::from(Spans::from(msg));
     text.patch_style(style);
     let help_message = Paragraph::new(text);
-    f.render_widget(help_message, chunks[0]);
+    f.render_widget(help_message, vertical_split[0]);
 
     let orig = Paragraph::new(app.original.as_ref())
-        .alignment(tui::layout::Alignment::Center)
+        // .alignment(tui::layout::Alignment::Center)
         .block(Block::default());
     f.render_widget(orig, chunks[FROM]);
 
     let transform = Paragraph::new(app.transform.as_ref())
-        .alignment(tui::layout::Alignment::Center)
+        // .alignment(tui::layout::Alignment::Center)
         .block(Block::default());
     f.render_widget(transform, chunks[TRANSFORM]);
 
@@ -248,7 +254,7 @@ fn ui<B: Backend>(f: &mut Frame<B>, app: &App) {
 
     let input = Paragraph::new(app.input.as_ref())
         .style(input_style)
-        .alignment(tui::layout::Alignment::Center)
+        // .alignment(tui::layout::Alignment::Center)
         .block(Block::default());
     f.render_widget(input, chunks[INPUT]);
 

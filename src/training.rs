@@ -32,7 +32,7 @@ pub struct Training {
 }
 
 impl Training {
-    pub fn new(learnables: Vec<Box<dyn Learnable>>, recorder: Box<dyn Recorder>) -> Self {
+    pub fn new(learnables: Vec<Box<dyn Learnable>>, recorder: Box<dyn Recorder>, selector: Box<dyn Selector>) -> Self {
         let mut transforms: std::collections::HashMap<TransformId, std::rc::Rc<dyn Transform>> =
             Default::default();
         let mut representations: std::collections::HashMap<
@@ -50,7 +50,8 @@ impl Training {
             }
         }
 
-        let mut selector = Box::new(DummySelector::new());
+        // let mut selector = Box::new(DummySelector::new());
+        let mut selector = selector;
         selector.set_questions(&questions, &*recorder);
         Training {
             learnables,

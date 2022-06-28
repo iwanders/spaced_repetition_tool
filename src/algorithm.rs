@@ -133,7 +133,7 @@ pub mod memorize {
     }
 
     /// A selector based on the recall curve...
-    mod recall_curve {
+    pub mod recall_curve {
         use super::{recall, review_intensity};
         use crate::traits::*;
         use serde::{Deserialize, Serialize};

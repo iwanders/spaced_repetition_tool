@@ -5,6 +5,7 @@ use memorizer::recorder::{MemoryRecorder, YamlRecorder};
 use memorizer::text::{load_text_learnables, TextRepresentation};
 use memorizer::training::Training;
 use memorizer::traits::{Question, RepresentationId, Score};
+use memorizer::algorithm::memorize::recall_curve::{RecallCurveConfig, RecallCurveSelector};
 
 use std::rc::Rc;
 
@@ -62,9 +63,11 @@ struct App {
 
 impl App {
     fn new() -> Result<App, Box<dyn Error>> {
-        let learnables = load_text_learnables("/tmp/output.yaml")?;
-        let recorder = YamlRecorder::new("/tmp/log.yaml")?;
-        let training = Training::new(learnables, Box::new(recorder));
+        let learnables = load_text_learnables(&std::env::args().nth(1).expect("Provide argument to learnables.yaml"))?;
+        let recorder = YamlRecorder::new("../log.yaml")?;
+        let config : RecallCurveConfig = Default::default();
+        let selector = RecallCurveSelector::new(config);
+        let training = Training::new(learnables, Box::new(recorder), Box::new(selector));
         Ok(App {
             input: String::new(),
             training,

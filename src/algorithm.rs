@@ -245,7 +245,12 @@ pub mod memorize {
             /// Store answer to a question.
             fn store_record(&mut self, record: &Record) {
                 // Update the internal record for this question.
-                let z = self.questions.iter_mut().find(|v| { v.question == record.question}).expect("Passed question for which we don't have a record.");
+                let z = self
+                    .questions
+                    .iter_mut()
+                    .find(|v| v.question == record.question)
+                    .expect("Passed question for which we don't have a record.");
+                z.records.push(*record);
                 z.last_time = std::time::SystemTime::now();
                 if record.score == 1.0 {
                     // correct.

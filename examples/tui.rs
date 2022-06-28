@@ -1,11 +1,11 @@
 // Hacked up from
 // https://github.com/fdehau/tui-rs/blob/v0.18.0/examples/user_input.rs
 
-use memorizer::recorder::{MemoryRecorder, YamlRecorder};
+use memorizer::algorithm::memorize::recall_curve::{RecallCurveConfig, RecallCurveSelector};
+use memorizer::recorder::YamlRecorder;
 use memorizer::text::{load_text_learnables, TextRepresentation};
 use memorizer::training::Training;
 use memorizer::traits::{Question, RepresentationId, Score};
-use memorizer::algorithm::memorize::recall_curve::{RecallCurveConfig, RecallCurveSelector};
 
 use std::rc::Rc;
 
@@ -21,10 +21,9 @@ use tui::{
     layout::{Constraint, Direction, Layout},
     style::{Color, Modifier, Style},
     text::{Span, Spans, Text},
-    widgets::{Block, Borders, Paragraph},
+    widgets::{Block, Paragraph},
     Frame, Terminal,
 };
-use unicode_width::UnicodeWidthStr;
 
 #[derive(PartialEq)]
 enum ApplicationState {
@@ -63,9 +62,13 @@ struct App {
 
 impl App {
     fn new() -> Result<App, Box<dyn Error>> {
-        let learnables = load_text_learnables(&std::env::args().nth(1).expect("Provide argument to learnables.yaml"))?;
+        let learnables = load_text_learnables(
+            &std::env::args()
+                .nth(1)
+                .expect("Provide argument to learnables.yaml"),
+        )?;
         let recorder = YamlRecorder::new("../log.yaml")?;
-        let config : RecallCurveConfig = Default::default();
+        let config: RecallCurveConfig = Default::default();
         let selector = RecallCurveSelector::new(config);
         let training = Training::new(learnables, Box::new(recorder), Box::new(selector));
         Ok(App {

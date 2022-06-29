@@ -260,7 +260,7 @@ fn ui<B: Backend>(f: &mut Frame<B>, app: &App) {
 
     if !app.answer_correct {
         let answer = Paragraph::new(app.answer.as_ref())
-            .alignment(tui::layout::Alignment::Center)
+            // .alignment(tui::layout::Alignment::Center)
             .block(Block::default());
         f.render_widget(answer, chunks[ANSWER]);
     }

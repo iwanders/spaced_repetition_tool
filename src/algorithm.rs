@@ -283,7 +283,6 @@ pub mod supermemo2 {
         /// The inter-repetition interval I, which is the length of time (in days) SuperMemo
         /// will wait after the previous review before asking the user to review the card again.
         inter_repetition: u64, // I, Inter repetition interval, days
-
     }
     /*
         Every time the user starts a review session, SuperMemo provides the user with the cards
@@ -364,7 +363,7 @@ pub mod supermemo2 {
     #[derive(Debug, Clone)]
     struct QuestionInfo {
         question: Question,
-        records: Vec<Record>,
+        // records: Vec<Record>,
         last_time: std::time::SystemTime,
         /// Variable to keep track of the last score, to be able to ask until the user gives it
         /// a grade of >= 4
@@ -409,7 +408,7 @@ pub mod supermemo2 {
 
                 self.questions.push(QuestionInfo {
                     question: *question,
-                    records,
+                    // records,
                     last_time,
                     last_grade,
                     state,
@@ -424,7 +423,7 @@ pub mod supermemo2 {
             // Stage one:
             // Every time the user starts a review session, SuperMemo provides the user with the
             // cards whose last review occurred at least I days ago.
-            
+
             let now = std::time::SystemTime::now();
 
             // Subtract a few hours, this allows for testing at an earlier timestamp than exactly 24 hours for
@@ -435,9 +434,11 @@ pub mod supermemo2 {
                 .questions
                 .iter()
                 .filter(|z| {
-                    let duration_since_last = now.duration_since(z.last_time).expect("can this fail?");
+                    let duration_since_last =
+                        now.duration_since(z.last_time).expect("can this fail?");
                     // println!("duration_since_last: {:?}", duration_since_last);
-                    let interval_to_days = std::time::Duration::new(24 * 60 * 60 * z.state.inter_repetition, 0);
+                    let interval_to_days =
+                        std::time::Duration::new(24 * 60 * 60 * z.state.inter_repetition(), 0);
                     let interval_to_days = interval_to_days.saturating_sub(interval_subtract);
                     duration_since_last > interval_to_days
                 })
@@ -445,7 +446,12 @@ pub mod supermemo2 {
 
             if !questions_pending_review.is_empty() {
                 // println!("questions_pending_review len: {}", questions_pending_review.len());
-                return Some(questions_pending_review.choose(&mut rand::thread_rng()).unwrap().question);
+                return Some(
+                    questions_pending_review
+                        .choose(&mut rand::thread_rng())
+                        .unwrap()
+                        .question,
+                );
             }
 
             // After all scheduled reviews are complete, SuperMemo asks the user to re-review any cards
@@ -454,13 +460,19 @@ pub mod supermemo2 {
             let questions_pending_re_review = self
                 .questions
                 .iter()
-                .filter(|z| {
-                    z.pending_re_review
-                })
+                .filter(|z| z.pending_re_review)
                 .collect::<Vec<_>>();
             if !questions_pending_re_review.is_empty() {
-                println!("questions_pending_re_review len: {}", questions_pending_re_review.len());
-                return Some(questions_pending_re_review.choose(&mut rand::thread_rng()).unwrap().question);
+                println!(
+                    "questions_pending_re_review len: {}",
+                    questions_pending_re_review.len()
+                );
+                return Some(
+                    questions_pending_re_review
+                        .choose(&mut rand::thread_rng())
+                        .unwrap()
+                        .question,
+                );
             }
 
             // Reached the end of the session.

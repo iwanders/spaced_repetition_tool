@@ -1,12 +1,12 @@
 // Hacked up from
 // https://github.com/fdehau/tui-rs/blob/v0.18.0/examples/user_input.rs
 
-use memorizer::algorithm::memorize::recall_curve::{RecallCurveConfig, RecallCurveSelector};
-use memorizer::algorithm::supermemo2::{SuperMemo2Selector};
+// use memorizer::algorithm::memorize::recall_curve::{RecallCurveConfig, RecallCurveSelector};
+use memorizer::algorithm::supermemo2::SuperMemo2Selector;
 use memorizer::recorder::YamlRecorder;
 use memorizer::text::{load_text_learnables, TextRepresentation};
 use memorizer::training::Training;
-use memorizer::traits::{Question, RepresentationId, Score};
+use memorizer::traits::{Question, Record, RepresentationId, Score};
 
 use std::rc::Rc;
 
@@ -22,15 +22,16 @@ use tui::{
     layout::{Constraint, Direction, Layout},
     style::{Color, Modifier, Style},
     text::{Span, Spans, Text},
-    widgets::{Block, Paragraph},
-    Frame, Terminal,
+    widgets::{Block, Paragraph}, // Borders,
+    Frame,
+    Terminal,
 };
 
 #[derive(PartialEq)]
 enum ApplicationState {
     /// A question is asked, user is entering the answer.
     QuestionAsked,
-    /// The true answer is displayed.
+    /// The true answer is displayed, score can be adjusted. Pressing enter submits this record.
     AnswerGiven,
     /// State happens when the selector returns an empty optional. This is a termination state.
     NoMoreQuestions,
@@ -63,6 +64,9 @@ struct App {
 
     /// The current question:
     question: Question,
+
+    /// The proposed record for this answer.
+    record: Option<Record>,
 }
 
 impl App {
@@ -77,7 +81,7 @@ impl App {
         // let config: RecallCurveConfig = Default::default();
         // let selector = RecallCurveSelector::new(config);
         let selector = SuperMemo2Selector::new();
-        
+
         let training = Training::new(learnables, Box::new(recorder), Box::new(selector));
         Ok(App {
             input: String::new(),
@@ -89,6 +93,7 @@ impl App {
             answer_correct: false,
             state: ApplicationState::QuestionAsked,
             question: Default::default(),
+            record: Default::default(),
         })
     }
 
@@ -102,14 +107,26 @@ impl App {
     fn process_answer(&mut self) {
         // do something with the current input.
         let z = Rc::new(TextRepresentation::new(&self.input, RepresentationId(0)));
-        let (score, truth) = self
+        let (record, truth) = self
             .training
-            .answer(&self.question, z)
+            .get_answer(&self.question, z)
             .expect("should succeed");
-        self.answer_score = score;
-        self.answer_correct = score == 1.0;
+
+        self.answer_score = record.score;
+        self.answer_correct = record.score == 1.0;
+
+        self.record = Some(record);
+
         self.answer = truth.text().to_string();
         self.state = ApplicationState::AnswerGiven;
+    }
+
+    fn submit_record(&mut self) {
+        if let Some(record) = self.record {
+            self.training
+                .finalize_answer(record)
+                .expect("Shouldn't fail");
+        }
     }
 
     fn populate_new(&mut self) {
@@ -134,6 +151,15 @@ impl App {
             self.input.clear();
             self.state = ApplicationState::NoMoreQuestions;
         }
+    }
+
+    fn modify_pending_score(&mut self, v: f64) {
+        let record = self
+            .record
+            .as_mut()
+            .expect("Must be set populated when modifying");
+        record.score = (record.score + v).clamp(0.0, 1.0);
+        record.score = (record.score * 10.0).round() / 10.0;
     }
 }
 
@@ -176,7 +202,9 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: App) -> io::Result<(
             match app.state {
                 ApplicationState::QuestionAsked => match key.code {
                     KeyCode::Enter => {
-                        app.process_answer();
+                        if !app.input.is_empty() {
+                            app.process_answer();
+                        }
                     }
                     KeyCode::Char(c) => {
                         if app.state == ApplicationState::QuestionAsked {
@@ -192,7 +220,15 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: App) -> io::Result<(
                 },
                 ApplicationState::AnswerGiven => match key.code {
                     KeyCode::Enter => {
+                        app.submit_record();
                         app.populate_new();
+                    }
+                    KeyCode::Right | KeyCode::Up => {
+                        // println!("adding");
+                        app.modify_pending_score(0.2);
+                    }
+                    KeyCode::Left | KeyCode::Down => {
+                        app.modify_pending_score(-0.2);
                     }
                     _ => {}
                 },
@@ -218,6 +254,7 @@ fn ui<B: Backend>(f: &mut Frame<B>, app: &App) {
                 Constraint::Percentage(5),
                 Constraint::Length(1), // input
                 Constraint::Length(1), // real answer
+                Constraint::Length(1), // Scorebar
                 Constraint::Percentage(30),
             ]
             .as_ref(),
@@ -228,6 +265,9 @@ fn ui<B: Backend>(f: &mut Frame<B>, app: &App) {
     const TRANSFORM: usize = 3;
     const INPUT: usize = 5;
     const ANSWER: usize = 6;
+    const SCOREBAR: usize = 7;
+    let mut score_bar_region = chunks[SCOREBAR];
+    score_bar_region.width = 3 * 5;
 
     let msg = vec![
         Span::raw("Press "),
@@ -264,6 +304,44 @@ fn ui<B: Backend>(f: &mut Frame<B>, app: &App) {
             } else {
                 input_style = Style::default().fg(Color::Red);
             }
+            let score = app
+                .record
+                .as_ref()
+                .expect("Must be populated in answer given state")
+                .score;
+            let fg_color;
+            let label;
+
+            if score == 0.0 {
+                fg_color = Color::Red;
+                label = "blackout";
+            } else if score == 0.2 {
+                fg_color = Color::Red;
+                label = "familiar";
+            } else if score == 0.4 {
+                fg_color = Color::Red;
+                label = "ah yes";
+            } else if score == 0.6 {
+                fg_color = Color::Green;
+                label = "effort";
+            } else if score == 0.8 {
+                fg_color = Color::Green;
+                label = "hesitated";
+            } else {
+                fg_color = Color::Green;
+                label = "aced";
+            }
+            let g = tui::widgets::Gauge::default()
+                .block(Block::default())
+                .gauge_style(
+                    Style::default()
+                        .fg(fg_color)
+                        .bg(Color::Black)
+                        .add_modifier(Modifier::ITALIC),
+                )
+                .ratio(score)
+                .label(label);
+            f.render_widget(g, score_bar_region);
         }
         ApplicationState::NoMoreQuestions => {
             input_style = Style::default();

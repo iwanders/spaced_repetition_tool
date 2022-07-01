@@ -94,11 +94,11 @@ impl Training {
             .clone()
     }
 
-    pub fn answer(
+    pub fn get_answer(
         &mut self,
         question: &Question,
         given_answer: std::rc::Rc<dyn Representation>,
-    ) -> Result<(Score, std::rc::Rc<dyn Representation>), MemorizerError> {
+    ) -> Result<(Record, std::rc::Rc<dyn Representation>), MemorizerError> {
         let representation = self
             .representations
             .get(&question.to)
@@ -110,8 +110,14 @@ impl Training {
             score,
             time,
         };
+        Ok((record, representation.clone()))
+    }
+
+    pub fn finalize_answer(&mut self, record: Record) -> Result<(), MemorizerError> {
+        assert!(record.score >= 0.0);
+        assert!(record.score <= 1.0);
         self.recorder.store_record(&record)?;
         self.selector.store_record(&record);
-        Ok((score, representation.clone()))
+        Ok(())
     }
 }

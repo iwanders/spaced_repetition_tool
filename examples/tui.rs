@@ -2,6 +2,7 @@
 // https://github.com/fdehau/tui-rs/blob/v0.18.0/examples/user_input.rs
 
 use memorizer::algorithm::memorize::recall_curve::{RecallCurveConfig, RecallCurveSelector};
+use memorizer::algorithm::supermemo2::{SuperMemo2Selector};
 use memorizer::recorder::YamlRecorder;
 use memorizer::text::{load_text_learnables, TextRepresentation};
 use memorizer::training::Training;
@@ -72,8 +73,11 @@ impl App {
                 .expect("Provide argument to learnables.yaml"),
         )?;
         let recorder = YamlRecorder::new("../log.yaml")?;
-        let config: RecallCurveConfig = Default::default();
-        let selector = RecallCurveSelector::new(config);
+
+        // let config: RecallCurveConfig = Default::default();
+        // let selector = RecallCurveSelector::new(config);
+        let selector = SuperMemo2Selector::new();
+        
         let training = Training::new(learnables, Box::new(recorder), Box::new(selector));
         Ok(App {
             input: String::new(),
@@ -126,7 +130,7 @@ impl App {
             self.state = ApplicationState::QuestionAsked;
         } else {
             self.original.clear();
-            self.transform.clear();
+            self.transform = String::from("No more questions at the moment.");
             self.input.clear();
             self.state = ApplicationState::NoMoreQuestions;
         }
@@ -165,39 +169,34 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: App) -> io::Result<(
         terminal.draw(|f| ui(f, &app))?;
 
         if let Event::Key(key) = event::read()? {
-            
             if key.code == KeyCode::Esc {
                 return Ok(());
             }
 
             match app.state {
-                ApplicationState::QuestionAsked => {
-                    match key.code {
-                        KeyCode::Enter => {
-                            app.process_answer();
-                        },
-                        KeyCode::Char(c) => {
-                            if app.state == ApplicationState::QuestionAsked {
-                                app.input.push(c);
-                            }
+                ApplicationState::QuestionAsked => match key.code {
+                    KeyCode::Enter => {
+                        app.process_answer();
+                    }
+                    KeyCode::Char(c) => {
+                        if app.state == ApplicationState::QuestionAsked {
+                            app.input.push(c);
                         }
-                        KeyCode::Backspace => {
-                            if app.state == ApplicationState::QuestionAsked {
-                                app.input.pop();
-                            }
-                        },
-                        _ => {},
                     }
-                }
-                ApplicationState::AnswerGiven => {
-                    match key.code {
-                        KeyCode::Enter => {
-                            app.populate_new();
-                        },
-                        _ => {},
+                    KeyCode::Backspace => {
+                        if app.state == ApplicationState::QuestionAsked {
+                            app.input.pop();
+                        }
                     }
-                }
-                _ => {},
+                    _ => {}
+                },
+                ApplicationState::AnswerGiven => match key.code {
+                    KeyCode::Enter => {
+                        app.populate_new();
+                    }
+                    _ => {}
+                },
+                _ => {}
             }
         }
     }
@@ -267,8 +266,7 @@ fn ui<B: Backend>(f: &mut Frame<B>, app: &App) {
             }
         }
         ApplicationState::NoMoreQuestions => {
-                input_style = Style::default();
-            
+            input_style = Style::default();
         }
     }
 

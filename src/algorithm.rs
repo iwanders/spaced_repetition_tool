@@ -283,6 +283,7 @@ pub mod supermemo2 {
         /// The inter-repetition interval I, which is the length of time (in days) SuperMemo
         /// will wait after the previous review before asking the user to review the card again.
         inter_repetition: u64, // I, Inter repetition interval, days
+
     }
     /*
         Every time the user starts a review session, SuperMemo provides the user with the cards
@@ -304,7 +305,7 @@ pub mod supermemo2 {
 
     impl Default for QuestionState {
         fn default() -> Self {
-            QuestionState{
+            QuestionState {
                 repetition_number: 0,
                 easiness_factor: 2.5,
                 inter_repetition: 0,
@@ -313,19 +314,37 @@ pub mod supermemo2 {
     }
 
     impl QuestionState {
+        pub fn score_to_grade(score: f64) -> u64 {
+            if score <= 0.0 {
+                0
+            } else if score <= 0.2 {
+                1
+            } else if score <= 0.4 {
+                2
+            } else if score <= 0.6 {
+                3
+            } else if score <= 0.8 {
+                4
+            } else {
+                5
+            }
+        }
+
         pub fn update(&mut self, user_grade: u64) {
             assert!(user_grade <= 5);
-            if user_grade >= 3 { // correct response
-                if self.inter_repetition == 1 {
+            if user_grade >= 3 {
+                // correct response
+                if self.repetition_number == 1 {
                     self.inter_repetition = 1;
-                } else if self.inter_repetition == 1 {
+                } else if self.repetition_number == 1 {
                     self.inter_repetition = 6;
                 } else {
                     self.inter_repetition =
                         ((self.inter_repetition as f64) * self.easiness_factor).round() as u64;
                 }
                 self.repetition_number += 1;
-            } else { // incorrect response
+            } else {
+                // incorrect response
                 self.repetition_number = 0;
                 self.inter_repetition = 1;
             }
@@ -347,6 +366,14 @@ pub mod supermemo2 {
         question: Question,
         records: Vec<Record>,
         last_time: std::time::SystemTime,
+        /// Variable to keep track of the last score, to be able to ask until the user gives it
+        /// a grade of >= 4
+        last_grade: u64,
+
+        /// If question was asked and last grade is less than 4.
+        pending_re_review: bool,
+
+        state: QuestionState,
     }
 
     #[derive(Debug)]
@@ -362,17 +389,97 @@ pub mod supermemo2 {
 
     impl Selector for SuperMemo2Selector {
         fn set_questions(&mut self, questions: &[Question], recorder: &dyn Recorder) {
-            unimplemented!();
+            self.questions.clear();
+            let now = std::time::SystemTime::now();
+            for question in questions.iter() {
+                let records = recorder
+                    .get_records_by_learnable(question.learnable)
+                    .expect("Should return empty if unknown");
+
+                // Create the state and iterate through all records to update the state.
+                let mut state = QuestionState::default();
+                let mut last_time = now;
+                let mut last_grade = 0;
+                for record in records.iter() {
+                    last_time = record.time;
+                    let grade = QuestionState::score_to_grade(record.score);
+                    last_grade = grade;
+                    state.update(grade);
+                }
+
+                self.questions.push(QuestionInfo {
+                    question: *question,
+                    records,
+                    last_time,
+                    last_grade,
+                    state,
+                    pending_re_review: false,
+                });
+            }
         }
 
         /// Retrieve a question to ask.
         fn get_question(&mut self) -> Option<Question> {
-            unimplemented!();
+            use rand::seq::SliceRandom;
+            // Stage one:
+            // Every time the user starts a review session, SuperMemo provides the user with the
+            // cards whose last review occurred at least I days ago.
+            
+            let now = std::time::SystemTime::now();
+
+            // Subtract a few hours, this allows for testing at an earlier timestamp than exactly 24 hours for
+            // a day, preventing the interval from 'moving forward' in time when reviewing at roughly the same
+            // time each day.
+            let interval_subtract = std::time::Duration::new(60 * 60 * 6, 0);
+            let questions_pending_review = self
+                .questions
+                .iter()
+                .filter(|z| {
+                    let duration_since_last = now.duration_since(z.last_time).expect("can this fail?");
+                    // println!("duration_since_last: {:?}", duration_since_last);
+                    let interval_to_days = std::time::Duration::new(24 * 60 * 60 * z.state.inter_repetition, 0);
+                    let interval_to_days = interval_to_days.saturating_sub(interval_subtract);
+                    duration_since_last > interval_to_days
+                })
+                .collect::<Vec<_>>();
+
+            if !questions_pending_review.is_empty() {
+                // println!("questions_pending_review len: {}", questions_pending_review.len());
+                return Some(questions_pending_review.choose(&mut rand::thread_rng()).unwrap().question);
+            }
+
+            // After all scheduled reviews are complete, SuperMemo asks the user to re-review any cards
+            // they marked with a grade less than 4 repeatedly until they give a grade ≥ 4.
+            // Iterate through the questions, filter by pending re-review, pick from that.
+            let questions_pending_re_review = self
+                .questions
+                .iter()
+                .filter(|z| {
+                    z.pending_re_review
+                })
+                .collect::<Vec<_>>();
+            if !questions_pending_re_review.is_empty() {
+                println!("questions_pending_re_review len: {}", questions_pending_re_review.len());
+                return Some(questions_pending_re_review.choose(&mut rand::thread_rng()).unwrap().question);
+            }
+
+            // Reached the end of the session.
+            return None;
         }
 
         /// Store answer to a question.
         fn store_record(&mut self, record: &Record) {
-            unimplemented!();
+            let z = self
+                .questions
+                .iter_mut()
+                .find(|v| v.question == record.question)
+                .expect("Passed question for which we don't have a record.");
+            // println!("z: {:p}", &z);
+            let grade = QuestionState::score_to_grade(record.score);
+            z.last_grade = grade;
+            z.pending_re_review = grade < 4; // mark for re-review
+            z.state.update(grade);
+            z.last_time = record.time;
         }
     }
 }

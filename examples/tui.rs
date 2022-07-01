@@ -188,9 +188,7 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: App) -> io::Result<(
 fn ui<B: Backend>(f: &mut Frame<B>, app: &App) {
     let vertical_split = Layout::default()
         .direction(Direction::Horizontal)
-        .constraints([
-                Constraint::Percentage(30),
-                Constraint::Percentage(70),].as_ref())
+        .constraints([Constraint::Percentage(30), Constraint::Percentage(70)].as_ref())
         .split(f.size());
     let chunks = Layout::default()
         .direction(Direction::Vertical)

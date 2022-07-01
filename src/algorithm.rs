@@ -263,3 +263,116 @@ pub mod memorize {
         }
     }
 }
+
+// As retrieved from https://en.wikipedia.org/wiki/SuperMemo
+// https://en.wikipedia.org/w/index.php?title=SuperMemo&oldid=1087602144
+pub mod supermemo2 {
+
+    use crate::traits::*;
+    // use serde::{Deserialize, Serialize};
+    #[derive(Debug, Clone)]
+    struct QuestionState {
+        /// The repetition number n, which is the number of times the card has been
+        /// successfully recalled (meaning it was given a grade ≥ 3) in a row since the last
+        /// time it was not.
+        repetition_number: u64, // n
+        /// The easiness factor EF, which loosely indicates how "easy" the card is (more
+        /// precisely, it determines how quickly the inter-repetition interval grows).
+        /// The initial value of EF is 2.5.
+        easiness_factor: f64, // EF, initially 2.5
+        /// The inter-repetition interval I, which is the length of time (in days) SuperMemo
+        /// will wait after the previous review before asking the user to review the card again.
+        inter_repetition: u64, // I, Inter repetition interval, days
+    }
+    /*
+        Every time the user starts a review session, SuperMemo provides the user with the cards
+        whose last review occurred at least I days ago. For each review, the user tries to
+        recall the information and (after being shown the correct answer) specifies a grade q
+        (from 0 to 5) indicating a self-evaluation the quality of their response, with each
+        grade having the following meaning:
+
+        0: "Total blackout", complete failure to recall the information.
+        1: Incorrect response, but upon seeing the correct answer it felt familiar.
+        2: Incorrect response, but upon seeing the correct answer it seemed easy to remember.
+        3: Correct response, but required significant effort to recall.
+        4: Correct response, after some hesitation.
+        5: Correct response with perfect recall.
+
+        After all scheduled reviews are complete, SuperMemo asks the user to re-review any cards
+        they marked with a grade less than 4 repeatedly until they give a grade ≥ 4.
+    */
+
+    impl Default for QuestionState {
+        fn default() -> Self {
+            QuestionState{
+                repetition_number: 0,
+                easiness_factor: 2.5,
+                inter_repetition: 0,
+            }
+        }
+    }
+
+    impl QuestionState {
+        pub fn update(&mut self, user_grade: u64) {
+            assert!(user_grade <= 5);
+            if user_grade >= 3 { // correct response
+                if self.inter_repetition == 1 {
+                    self.inter_repetition = 1;
+                } else if self.inter_repetition == 1 {
+                    self.inter_repetition = 6;
+                } else {
+                    self.inter_repetition =
+                        ((self.inter_repetition as f64) * self.easiness_factor).round() as u64;
+                }
+                self.repetition_number += 1;
+            } else { // incorrect response
+                self.repetition_number = 0;
+                self.inter_repetition = 1;
+            }
+            // update EF based on correctness.
+            let s = (5 - user_grade) as f64;
+            self.easiness_factor = self.easiness_factor + (0.1 - s * (0.08 + s * 0.02));
+            if self.easiness_factor < 1.3 {
+                self.easiness_factor = 1.3;
+            }
+        }
+
+        pub fn inter_repetition() -> u64 {
+            self.inter_repetition
+        }
+    }
+
+    #[derive(Debug, Clone)]
+    struct QuestionInfo {
+        question: Question,
+        records: Vec<Record>,
+        last_time: std::time::SystemTime,
+    }
+
+    #[derive(Debug)]
+    pub struct SuperMemo2Selector {
+        // Holds information about each question itself.
+        questions: Vec<QuestionInfo>,
+    }
+    impl SuperMemo2Selector {
+        pub fn new() -> Self {
+            SuperMemo2Selector { questions: vec![] }
+        }
+    }
+
+    impl Selector for SuperMemo2Selector {
+        fn set_questions(&mut self, questions: &[Question], recorder: &dyn Recorder) {
+            unimplemented!();
+        }
+
+        /// Retrieve a question to ask.
+        fn get_question(&mut self) -> Question {
+            unimplemented!();
+        }
+
+        /// Store answer to a question.
+        fn store_record(&mut self, record: &Record) {
+            unimplemented!();
+        }
+    }
+}

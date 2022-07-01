@@ -27,8 +27,12 @@ use tui::{
 
 #[derive(PartialEq)]
 enum ApplicationState {
+    /// A question is asked, user is entering the answer.
     QuestionAsked,
+    /// The true answer is displayed.
     AnswerGiven,
+    /// State happens when the selector returns an empty optional. This is a termination state.
+    NoMoreQuestions,
 }
 
 /// App holds the state of the application
@@ -106,19 +110,26 @@ impl App {
 
     fn populate_new(&mut self) {
         self.clear_fields();
-        self.question = self.training.question();
-        self.original = self
-            .training
-            .representation(self.question.from)
-            .text()
-            .to_string();
-        self.transform = self
-            .training
-            .transform(self.question.transform)
-            .description()
-            .to_string();
-        self.input.clear();
-        self.state = ApplicationState::QuestionAsked;
+        if let Some(q) = self.training.question() {
+            self.question = q;
+            self.original = self
+                .training
+                .representation(self.question.from)
+                .text()
+                .to_string();
+            self.transform = self
+                .training
+                .transform(self.question.transform)
+                .description()
+                .to_string();
+            self.input.clear();
+            self.state = ApplicationState::QuestionAsked;
+        } else {
+            self.original.clear();
+            self.transform.clear();
+            self.input.clear();
+            self.state = ApplicationState::NoMoreQuestions;
+        }
     }
 }
 
@@ -154,32 +165,39 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: App) -> io::Result<(
         terminal.draw(|f| ui(f, &app))?;
 
         if let Event::Key(key) = event::read()? {
-            match key.code {
-                KeyCode::Enter => {
-                    //app.messages.push(app.input.drain(..).collect());
-                    match app.state {
-                        ApplicationState::QuestionAsked => {
+            
+            if key.code == KeyCode::Esc {
+                return Ok(());
+            }
+
+            match app.state {
+                ApplicationState::QuestionAsked => {
+                    match key.code {
+                        KeyCode::Enter => {
                             app.process_answer();
+                        },
+                        KeyCode::Char(c) => {
+                            if app.state == ApplicationState::QuestionAsked {
+                                app.input.push(c);
+                            }
                         }
-                        ApplicationState::AnswerGiven => {
+                        KeyCode::Backspace => {
+                            if app.state == ApplicationState::QuestionAsked {
+                                app.input.pop();
+                            }
+                        },
+                        _ => {},
+                    }
+                }
+                ApplicationState::AnswerGiven => {
+                    match key.code {
+                        KeyCode::Enter => {
                             app.populate_new();
-                        }
+                        },
+                        _ => {},
                     }
                 }
-                KeyCode::Char(c) => {
-                    if app.state == ApplicationState::QuestionAsked {
-                        app.input.push(c);
-                    }
-                }
-                KeyCode::Backspace => {
-                    if app.state == ApplicationState::QuestionAsked {
-                        app.input.pop();
-                    }
-                }
-                KeyCode::Esc => {
-                    return Ok(());
-                }
-                _ => {}
+                _ => {},
             }
         }
     }
@@ -217,7 +235,7 @@ fn ui<B: Backend>(f: &mut Frame<B>, app: &App) {
         Span::styled("Esc", Style::default().add_modifier(Modifier::BOLD)),
         Span::raw(" to exit, "),
         Span::styled("Enter", Style::default().add_modifier(Modifier::BOLD)),
-        Span::raw(" to submit asnwer."),
+        Span::raw(" to submit answer."),
     ];
 
     let style = Style::default();
@@ -247,6 +265,10 @@ fn ui<B: Backend>(f: &mut Frame<B>, app: &App) {
             } else {
                 input_style = Style::default().fg(Color::Red);
             }
+        }
+        ApplicationState::NoMoreQuestions => {
+                input_style = Style::default();
+            
         }
     }
 

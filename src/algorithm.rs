@@ -364,10 +364,8 @@ pub mod supermemo2 {
     struct QuestionInfo {
         question: Question,
         // records: Vec<Record>,
+
         last_time: std::time::SystemTime,
-        /// Variable to keep track of the last score, to be able to ask until the user gives it
-        /// a grade of >= 4
-        last_grade: u64,
 
         /// If question was asked and last grade is less than 4.
         pending_re_review: bool,
@@ -398,11 +396,9 @@ pub mod supermemo2 {
                 // Create the state and iterate through all records to update the state.
                 let mut state = QuestionState::default();
                 let mut last_time = now;
-                let mut last_grade = 0;
                 for record in records.iter() {
                     last_time = record.time;
                     let grade = QuestionState::score_to_grade(record.score);
-                    last_grade = grade;
                     state.update(grade);
                 }
 
@@ -410,7 +406,6 @@ pub mod supermemo2 {
                     question: *question,
                     // records,
                     last_time,
-                    last_grade,
                     state,
                     pending_re_review: false,
                 });
@@ -463,10 +458,6 @@ pub mod supermemo2 {
                 .filter(|z| z.pending_re_review)
                 .collect::<Vec<_>>();
             if !questions_pending_re_review.is_empty() {
-                println!(
-                    "questions_pending_re_review len: {}",
-                    questions_pending_re_review.len()
-                );
                 return Some(
                     questions_pending_re_review
                         .choose(&mut rand::thread_rng())
@@ -486,9 +477,8 @@ pub mod supermemo2 {
                 .iter_mut()
                 .find(|v| v.question == record.question)
                 .expect("Passed question for which we don't have a record.");
-            // println!("z: {:p}", &z);
             let grade = QuestionState::score_to_grade(record.score);
-            z.last_grade = grade;
+            // z.last_grade = grade;
             z.pending_re_review = grade < 4; // mark for re-review
             z.state.update(grade);
             z.last_time = record.time;

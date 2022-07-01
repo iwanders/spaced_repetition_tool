@@ -23,11 +23,11 @@ impl Selector for DummySelector {
     }
 
     /// Retrieve a question to ask.
-    fn get_question(&mut self) -> Question {
+    fn get_question(&mut self) -> Option<Question> {
         // Just return things in order.
         let first = self.edges.remove(0);
         self.edges.push(first.clone());
-        first.0
+        Some(first.0)
     }
 
     /// Store answer to a question.
@@ -213,7 +213,7 @@ pub mod memorize {
             }
 
             /// Retrieve a question to ask.
-            fn get_question(&mut self) -> Question {
+            fn get_question(&mut self) -> Option<Question> {
                 // Here, we calculate the review intensity for each question on hand.
                 // then we pick with a weighting.
                 let now = std::time::SystemTime::now();
@@ -239,7 +239,7 @@ pub mod memorize {
                 let dist = rand::distributions::WeightedIndex::new(&weights).unwrap();
                 let index = dist.sample(&mut rand::thread_rng());
 
-                self.questions[index].question
+                Some(self.questions[index].question)
             }
 
             /// Store answer to a question.
@@ -337,7 +337,7 @@ pub mod supermemo2 {
             }
         }
 
-        pub fn inter_repetition() -> u64 {
+        pub fn inter_repetition(&self) -> u64 {
             self.inter_repetition
         }
     }
@@ -366,7 +366,7 @@ pub mod supermemo2 {
         }
 
         /// Retrieve a question to ask.
-        fn get_question(&mut self) -> Question {
+        fn get_question(&mut self) -> Option<Question> {
             unimplemented!();
         }
 

@@ -76,7 +76,7 @@ impl Training {
         self.update_selector();
     }
 
-    pub fn question(&mut self) -> Question {
+    pub fn question(&mut self) -> Option<Question> {
         self.selector.get_question()
     }
 

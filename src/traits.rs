@@ -106,8 +106,8 @@ pub trait Selector: std::fmt::Debug {
     /// Constructor, takes recorder of past event and a set of learnables.
     fn set_questions(&mut self, questions: &[Question], recorder: &dyn Recorder);
 
-    /// Retrieve a question to ask.
-    fn get_question(&mut self) -> Question;
+    /// Retrieve a question to ask, if empty session is done, no questions to ask right now.
+    fn get_question(&mut self) -> Option<Question>;
 
     /// Store answer to a question, not guaranteed to be in sync with get_question.
     fn store_record(&mut self, record: &Record);

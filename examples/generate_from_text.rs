@@ -1,5 +1,5 @@
 use memorizer::text::{save_text_learnables, TextLearnable, TextRepresentation, TextTransform};
-use memorizer::traits::{LearnableId, RepresentationId, TransformId};
+use memorizer::traits::{LearnableId, RepresentationId, TransformId, Id};
 
 use clap::Parser;
 
@@ -16,23 +16,30 @@ struct Args {
     #[clap(short, long)]
     name: Option<String>,
 
-    /// The transform described in human terms.
+    /// The transform described in human terms, for to direction.
     #[clap(short, long)]
-    transform: Option<String>,
+    transform_to: Option<String>,
+    
+    /// The transform described in human terms, for reverse direction.
+    #[clap(long)]
+    transform_reverse: Option<String>,
+
+    #[clap(long)]
+    include_reverse: bool,
 
     /// The files to read.
     #[clap(required = true)]
     inputs: Vec<String>,
 }
 
-fn str_to_hash(v: &str) -> u128 {
+fn str_to_hash(v: &str) -> Id {
     use md5::{Digest, Md5};
 
     let mut hasher = Md5::new();
     hasher.update(v);
     let result: [u8; 16] = hasher.finalize().into();
 
-    u128::from_le_bytes(result)
+    u128::from_le_bytes(result) as Id // truncate it.
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -40,10 +47,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut learnables = vec![];
 
-    let transform_text = args
-        .transform
+    let transform_to_text = args
+        .transform_to
         .unwrap_or(String::from("Hopefully you know what to do..."));
-    let transform = TextTransform::new(&transform_text, TransformId(str_to_hash(&transform_text)));
+    let transform_to = TextTransform::new(&transform_to_text, TransformId(str_to_hash(&transform_to_text)));
+
+    let transform_reverse_text = args
+        .transform_reverse
+        .unwrap_or(String::from("Hopefully you know what to do..."));
+    let transform_reverse = TextTransform::new(&transform_reverse_text, TransformId(str_to_hash(&transform_reverse_text)));
 
     for input in args.inputs.iter() {
         use std::io::BufRead;
@@ -68,8 +80,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 TextRepresentation::new(&entries[0], RepresentationId(str_to_hash(&entries[0])));
             let t2 =
                 TextRepresentation::new(&entries[1], RepresentationId(str_to_hash(&entries[1])));
-            edges.push((t1, transform.clone(), t2));
-            let learnable_id = str_to_hash(&(transform_text.clone() + line));
+            edges.push((t1.clone(), transform_to.clone(), t2.clone()));
+            if args.include_reverse {
+                edges.push((t2, transform_reverse.clone(), t1));
+            }
+
+
+            let learnable_id = str_to_hash(&(transform_to_text.clone() + line));
 
             learnables.push(TextLearnable::new(&(edges[..]), LearnableId(learnable_id)));
         }

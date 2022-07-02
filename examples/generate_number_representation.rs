@@ -31,10 +31,10 @@ struct Args {
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     // We want all id's to be stable at all times, so here we make stable ids, shifting them by
     // 32 bits ought to be enough to cover anyones learning range?
-    const DEC_SHIFT: u128 = 0xDEC << 32;
-    const BINARY_SHIFT: u128 = 0xB0101 << 32;
-    const HEX_SHIFT: u128 = 0x48E << 32; // 0x48 is H >_<
-    const ASCII_SHIFT: u128 = 0xA5C11 << 32;
+    const DEC_SHIFT: u64 = 0xDEC << 32;
+    const BINARY_SHIFT: u64 = 0xB0101 << 32;
+    const HEX_SHIFT: u64 = 0x48E << 32; // 0x48 is H >_<
+    const ASCII_SHIFT: u64 = 0xA5C11 << 32;
 
     // Make a map of the transforms.
     let transforms: std::collections::HashMap<Direction, TextTransform> =
@@ -65,23 +65,23 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             ),
         ]);
 
-    fn make_dec(value: u128) -> TextRepresentation {
+    fn make_dec(value: u64) -> TextRepresentation {
         TextRepresentation::new(&format!("{value}"), RepresentationId(value + DEC_SHIFT))
     }
-    fn make_bin(value: u128) -> TextRepresentation {
+    fn make_bin(value: u64) -> TextRepresentation {
         TextRepresentation::new(
             &format!("{value:b}"),
             RepresentationId(value + BINARY_SHIFT),
         )
     }
-    fn make_hex(value: u128) -> TextRepresentation {
+    fn make_hex(value: u64) -> TextRepresentation {
         TextRepresentation::new(&format!("{value:x}"), RepresentationId(value + HEX_SHIFT))
     }
-    fn make_ascii(value: u128) -> TextRepresentation {
+    fn make_ascii(value: u64) -> TextRepresentation {
         if !valid_ascii(value) {
             panic!("Requested ascii value for non valid number.");
         }
-        let unprintables: std::collections::HashMap<u128, &str> =
+        let unprintables: std::collections::HashMap<u64, &str> =
             std::collections::HashMap::from([
                 (0, "NUL"),
                 (1, "SOH"),
@@ -101,7 +101,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             RepresentationId(value + ASCII_SHIFT),
         );
     }
-    fn valid_ascii(value: u128) -> bool {
+    fn valid_ascii(value: u64) -> bool {
         // Ok... so this is a bit tricky.
         // 0 to 32 are the unprintables, some of them are still useful, like \n and \r.
         // 32 itself is a space.
@@ -111,14 +111,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         false
     }
 
-    let learnable_id_base: u128 = 1656462468 << 32; // Totally legit unique number!
+    let learnable_id_base: u64 = 1656462468 << 32; // Totally legit unique number!
 
     let args = Args::parse();
 
     let mut learnables = vec![];
 
     for i in args.min..=args.max {
-        let v = i as u128;
+        let v = i as u64;
         let mut edges = vec![];
         for direction in args.directions.iter() {
             match direction {

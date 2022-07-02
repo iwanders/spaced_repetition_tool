@@ -6,7 +6,7 @@ pub enum RepresentationType {
     Text,
 }
 
-pub type Id = u128;
+pub type Id = u64;
 
 /// Id for a learnable, a learnable represents a set of learnable edges.
 /// Think of a normal flashcard as a single learnable with two edges (back to front, front to back)

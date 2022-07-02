@@ -3,14 +3,15 @@
 
 // A pretty clunky terminal interface to ask questions...
 
-// use memorizer::algorithm::memorize::recall_curve::{RecallCurveConfig, RecallCurveSelector};
+use memorizer::algorithm::memorize::recall_curve::{RecallCurveConfig, RecallCurveSelector};
 use memorizer::algorithm::super_memo_2::SuperMemo2Selector;
+
 use memorizer::recorder::YamlRecorder;
 use memorizer::text::{load_text_learnables, TextRepresentation};
 use memorizer::training::Training;
-use memorizer::traits::{Question, Record, RepresentationId, Score};
+use memorizer::traits::{Question, Record, RepresentationId, Score, Selector};
 
-use clap::Parser;
+use clap::{Parser, ValueEnum};
 
 use std::rc::Rc;
 
@@ -73,10 +74,22 @@ struct App {
     record: Option<Record>,
 }
 
+
+#[derive(Debug, ValueEnum, Clone, Eq, PartialEq, Hash)]
+enum SelectorArg {
+    SuperMemo2,
+    RecallCurveSelector,
+}
+
 /// Program to generate a set of learnables, decks written to /tmp/
 #[derive(Parser, Debug)]
 #[clap(long_about = None)]
 struct Args {
+
+    /// The directions to generate for each number in this range.
+    #[clap(value_enum, long)]
+    selector: Option<SelectorArg>,
+
     /// The yaml log file to read (and write) records to.
     log_file: String,
 
@@ -84,6 +97,7 @@ struct Args {
     #[clap(required = true)]
     learnables: Vec<String>,
 }
+
 
 impl App {
     fn new() -> Result<App, Box<dyn Error>> {
@@ -96,11 +110,19 @@ impl App {
             collected_learnables.extend(learnables);
         }
 
-        // let config: RecallCurveConfig = Default::default();
-        // let selector = RecallCurveSelector::new(config);
-        let selector = SuperMemo2Selector::new();
+        let selector_chosen = args.selector.unwrap_or(SelectorArg::SuperMemo2);
+        let selector : Box<dyn Selector>;
+        match selector_chosen {
+            SelectorArg::SuperMemo2 => {
+                selector = Box::new(SuperMemo2Selector::new());
+            },
+            SelectorArg::RecallCurveSelector => {
+                let config: RecallCurveConfig = Default::default();
+                selector = Box::new(RecallCurveSelector::new(config));
+            }
+        }
 
-        let training = Training::new(collected_learnables, Box::new(recorder), Box::new(selector));
+        let training = Training::new(collected_learnables, Box::new(recorder), selector);
         Ok(App {
             input: String::new(),
             training,

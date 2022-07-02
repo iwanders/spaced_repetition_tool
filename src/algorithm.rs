@@ -127,7 +127,7 @@ pub mod super_memo_2 {
             let now = std::time::SystemTime::now();
             for question in questions.iter() {
                 let records = recorder
-                    .get_records_by_learnable(question.learnable)
+                    .get_records_by_question(question)
                     .expect("Should return empty if unknown");
 
                 // Create the state and iterate through all records to update the state.
@@ -238,7 +238,7 @@ pub mod dummy {
             self.edges.clear();
             for q in questions.iter() {
                 let records = recorder
-                    .get_records_by_learnable(q.learnable)
+                    .get_records_by_question(q)
                     .expect("Should return empty if unknown");
                 let scores = records.iter().map(|x| x.score).collect::<_>();
                 self.edges.push((*q, scores));
@@ -410,7 +410,7 @@ pub mod memorize {
                 let now = std::time::SystemTime::now();
                 for question in questions.iter() {
                     let records = recorder
-                        .get_records_by_learnable(question.learnable)
+                        .get_records_by_question(question)
                         .expect("Should return empty if unknown");
 
                     let mut last_time = now;

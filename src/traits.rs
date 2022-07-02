@@ -120,10 +120,10 @@ pub trait Recorder: std::fmt::Debug {
     /// Store an answer.
     fn store_record(&mut self, record: &Record) -> Result<(), MemorizerError>;
 
-    /// Retrieve records by a learnable id.
-    fn get_records_by_learnable(
+    /// Retrieve records for a particular question.
+    fn get_records_by_question(
         &self,
-        learnable: LearnableId,
+        question: &Question,
     ) -> Result<Vec<Record>, MemorizerError>;
 }
 

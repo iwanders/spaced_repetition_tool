@@ -15,3 +15,4 @@ rand_distr =  "0.4.3"
 tui = "0.18.0"
 crossterm = "0.23.2"
 unicode-width = "0.1.9"
+clap = { version="3.2.8", features = ["derive"] }

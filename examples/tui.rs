@@ -1,8 +1,10 @@
 // Hacked up from
 // https://github.com/fdehau/tui-rs/blob/v0.18.0/examples/user_input.rs
 
+// This is a pretty clunky text interface, but hey it works.
+
 // use memorizer::algorithm::memorize::recall_curve::{RecallCurveConfig, RecallCurveSelector};
-use memorizer::algorithm::supermemo2::SuperMemo2Selector;
+use memorizer::algorithm::super_memo_2::SuperMemo2Selector;
 use memorizer::recorder::YamlRecorder;
 use memorizer::text::{load_text_learnables, TextRepresentation};
 use memorizer::training::Training;

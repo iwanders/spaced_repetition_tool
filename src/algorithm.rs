@@ -1,9 +1,8 @@
 use crate::traits::*;
 
-
 // As retrieved from https://en.wikipedia.org/wiki/SuperMemo
 // https://en.wikipedia.org/w/index.php?title=SuperMemo&oldid=1087602144
-pub mod supermemo2 {
+pub mod super_memo_2 {
     use crate::traits::*;
 
     #[derive(Debug, Clone)]
@@ -221,7 +220,7 @@ pub mod supermemo2 {
     }
 }
 
-pub mod dummy{
+pub mod dummy {
     use super::*;
     /// Trivial selector that yields entries in order.
     #[derive(Debug)]
@@ -488,4 +487,3 @@ pub mod memorize {
         }
     }
 }
-

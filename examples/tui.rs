@@ -10,8 +10,7 @@ use memorizer::text::{load_text_learnables, TextRepresentation};
 use memorizer::training::Training;
 use memorizer::traits::{Question, Record, RepresentationId, Score};
 
-
-use clap::{Parser};
+use clap::Parser;
 
 use std::rc::Rc;
 
@@ -78,7 +77,7 @@ struct App {
 #[derive(Parser, Debug)]
 #[clap(long_about = None)]
 struct Args {
-    /// The yaml log file to read (and write) records to. 
+    /// The yaml log file to read (and write) records to.
     log_file: String,
 
     /// The yaml files with learnables to load.

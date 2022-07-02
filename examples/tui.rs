@@ -283,14 +283,11 @@ fn ui<B: Backend>(f: &mut Frame<B>, app: &App) {
     let help_message = Paragraph::new(text);
     f.render_widget(help_message, vertical_split[0]);
 
-    let orig = Paragraph::new(app.original.as_ref())
-        // .alignment(tui::layout::Alignment::Center)
-        .block(Block::default());
+    // .alignment(tui::layout::Alignment::Center)
+    let orig = Paragraph::new(app.original.as_ref()).block(Block::default());
     f.render_widget(orig, chunks[FROM]);
 
-    let transform = Paragraph::new(app.transform.as_ref())
-        // .alignment(tui::layout::Alignment::Center)
-        .block(Block::default());
+    let transform = Paragraph::new(app.transform.as_ref()).block(Block::default());
     f.render_widget(transform, chunks[TRANSFORM]);
 
     let input_style;
@@ -350,14 +347,11 @@ fn ui<B: Backend>(f: &mut Frame<B>, app: &App) {
 
     let input = Paragraph::new(app.input.as_ref())
         .style(input_style)
-        // .alignment(tui::layout::Alignment::Center)
         .block(Block::default());
     f.render_widget(input, chunks[INPUT]);
 
     if !app.answer_correct {
-        let answer = Paragraph::new(app.answer.as_ref())
-            // .alignment(tui::layout::Alignment::Center)
-            .block(Block::default());
+        let answer = Paragraph::new(app.answer.as_ref()).block(Block::default());
         f.render_widget(answer, chunks[ANSWER]);
     }
 }

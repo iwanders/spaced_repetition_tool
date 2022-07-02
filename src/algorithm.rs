@@ -1,5 +1,6 @@
 use crate::traits::*;
 
+/// Trivial selector that yields entries in order.
 #[derive(Debug)]
 pub struct DummySelector {
     edges: Vec<(Question, Vec<Score>)>,
@@ -68,11 +69,12 @@ pub mod memorize {
         ((-n_t) * (t - t_last_review)).exp()
     }
 
+    /// Review intensity based on the recall curve and review rate.
     pub fn review_intensity(q: f64, recall: f64) -> f64 {
         q.powf(-0.5) * (1.0 - recall)
     }
 
-    // Time transform.
+    /// Time transform.
     pub fn intensity(n_t: f64, t: f64, q: f64) -> f64 {
         (1.0 / q.sqrt()) * (1.0 - (-n_t * t).exp())
     }
@@ -132,7 +134,7 @@ pub mod memorize {
         }
     }
 
-    /// A selector based on the recall curve...
+    /// A selector based on the recall curve of this paper.
     pub mod recall_curve {
         use super::{recall, review_intensity};
         use crate::traits::*;
@@ -167,7 +169,6 @@ pub mod memorize {
 
         #[derive(Debug)]
         pub struct RecallCurveSelector {
-            // Holds information about each question itself.
             questions: Vec<QuestionInfo>,
             config: RecallCurveConfig,
         }
@@ -267,9 +268,8 @@ pub mod memorize {
 // As retrieved from https://en.wikipedia.org/wiki/SuperMemo
 // https://en.wikipedia.org/w/index.php?title=SuperMemo&oldid=1087602144
 pub mod supermemo2 {
-
     use crate::traits::*;
-    // use serde::{Deserialize, Serialize};
+
     #[derive(Debug, Clone)]
     struct QuestionState {
         /// The repetition number n, which is the number of times the card has been
@@ -362,20 +362,22 @@ pub mod supermemo2 {
 
     #[derive(Debug, Clone)]
     struct QuestionInfo {
+        /// The question itself.
         question: Question,
-        // records: Vec<Record>,
 
+        /// Last time this question was asked.
         last_time: std::time::SystemTime,
 
         /// If question was asked and last grade is less than 4.
         pending_re_review: bool,
 
+        /// The internal state for this question.
         state: QuestionState,
     }
 
+    /// A selector that implements the SuperMemo2 algorithm.
     #[derive(Debug)]
     pub struct SuperMemo2Selector {
-        // Holds information about each question itself.
         questions: Vec<QuestionInfo>,
     }
     impl SuperMemo2Selector {
@@ -404,7 +406,6 @@ pub mod supermemo2 {
 
                 self.questions.push(QuestionInfo {
                     question: *question,
-                    // records,
                     last_time,
                     state,
                     pending_re_review: false,
@@ -440,7 +441,6 @@ pub mod supermemo2 {
                 .collect::<Vec<_>>();
 
             if !questions_pending_review.is_empty() {
-                // println!("questions_pending_review len: {}", questions_pending_review.len());
                 return Some(
                     questions_pending_review
                         .choose(&mut rand::thread_rng())
@@ -466,7 +466,7 @@ pub mod supermemo2 {
                 );
             }
 
-            // Reached the end of the session.
+            // Reached the end of the session, no more questions to ask.
             return None;
         }
 
@@ -478,7 +478,6 @@ pub mod supermemo2 {
                 .find(|v| v.question == record.question)
                 .expect("Passed question for which we don't have a record.");
             let grade = QuestionState::score_to_grade(record.score);
-            // z.last_grade = grade;
             z.pending_re_review = grade < 4; // mark for re-review
             z.state.update(grade);
             z.last_time = record.time;

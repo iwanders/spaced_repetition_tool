@@ -3,6 +3,8 @@
 use crate::traits::{LearnableId, MemorizerError, Record, Recorder};
 use serde::{Deserialize, Serialize};
 
+/// Recorder that only keeps all records in memory, but it is (de)serializable to easily allow
+/// reuse of it in other recorders.
 #[derive(Debug, Deserialize, Serialize, Default)]
 pub struct MemoryRecorder {
     records: Vec<Record>,
@@ -38,12 +40,15 @@ impl Recorder for MemoryRecorder {
     }
 }
 
+/// A recorder that read and writes a yaml file.
 #[derive(Debug)]
 pub struct YamlRecorder {
     recorder: MemoryRecorder,
     filename: String,
 }
 impl YamlRecorder {
+    /// Create a new yaml recorder, storing data in filename and if this file already exists it
+    /// will load data from there when created.
     pub fn new(filename: &str) -> Result<Self, MemorizerError> {
         // Read from file if it exists, else empty.
         let recorder: MemoryRecorder;
@@ -62,6 +67,7 @@ impl YamlRecorder {
         })
     }
 
+    /// Write the data to the disk.
     pub fn write(&mut self) -> Result<(), MemorizerError> {
         // Flush to disk.
         use std::fs::OpenOptions;

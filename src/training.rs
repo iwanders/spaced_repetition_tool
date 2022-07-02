@@ -1,26 +1,11 @@
 use crate::traits::*;
 
-/*
-Implements the generic flow;
-    Main flow;
-        Load Learnable
-        Load Recorder
-
-        Filter learnable based on rules.
-
-        Create Selector(learnables, recorder)
-
-        Get question
-        Present question
-        Obtain answer
-
-        store answer
-            -> Selector
-            -> Recorder
-
-        Go to get question.
-*/
-
+/// Struct that helps maintain the standard flow of a learning session.
+/// - Get Question
+/// - Propose answer
+/// - Rate answer
+/// - Submit answer
+/// Also provides accessors for transforms and representations.
 pub struct Training {
     // learnables: Vec<Box<dyn Learnable>>,
     questions: Vec<Question>,
@@ -31,6 +16,8 @@ pub struct Training {
 }
 
 impl Training {
+    /// Load the training object with a collection of learnables, a recorder and a selector.
+    /// This sets up the selector with the questions that can be asked from the learnables.
     pub fn new(
         learnables: Vec<Box<dyn Learnable>>,
         recorder: Box<dyn Recorder>,
@@ -66,20 +53,24 @@ impl Training {
         }
     }
 
-    pub fn update_selector(&mut self) {
+    /// Update the selector with the current questions.
+    fn update_selector(&mut self) {
         self.selector
             .set_questions(&self.questions, &*self.recorder);
     }
 
+    /// Set the new selector and pass the questions to it.
     pub fn set_selector(&mut self, selector: Box<dyn Selector>) {
         self.selector = selector;
         self.update_selector();
     }
 
+    /// Obtain a new question, or if there's no more questions to ask an empty.
     pub fn question(&mut self) -> Option<Question> {
         self.selector.get_question()
     }
 
+    /// Obtain the representation by id.
     pub fn representation(&self, id: RepresentationId) -> std::rc::Rc<dyn Representation> {
         self.representations
             .get(&id)
@@ -87,6 +78,7 @@ impl Training {
             .clone()
     }
 
+    /// Obtain the transform by id.
     pub fn transform(&self, id: TransformId) -> std::rc::Rc<dyn Transform> {
         self.transforms
             .get(&id)
@@ -94,6 +86,8 @@ impl Training {
             .clone()
     }
 
+    /// Get the answer to given question and obtain the proposed record for the given answer.
+    /// this proposed record may be modified before it is finalized.
     pub fn get_answer(
         &mut self,
         question: &Question,
@@ -113,6 +107,7 @@ impl Training {
         Ok((record, representation.clone()))
     }
 
+    /// Finalize the record, storing it in the recorder and selector.
     pub fn finalize_answer(&mut self, record: Record) -> Result<(), MemorizerError> {
         assert!(record.score >= 0.0);
         assert!(record.score <= 1.0);

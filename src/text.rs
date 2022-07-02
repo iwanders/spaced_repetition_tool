@@ -1,9 +1,7 @@
 use crate::traits::*;
 use serde::{Deserialize, Serialize};
 
-// use serde::de::Deserializer;
-// use serde::ser::Serializer;
-
+/// Simplest implementation for a text representation.
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct TextRepresentation {
     text: String,
@@ -44,6 +42,7 @@ impl Representation for TextRepresentation {
     }
 }
 
+/// Simplest implementation for a text transformation.
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct TextTransform {
     text: String,
@@ -77,6 +76,7 @@ impl Transform for TextTransform {
 
 type TextEdge = (TextRepresentation, TextTransform, TextRepresentation);
 
+/// A text learnable holds several learnables.
 #[derive(Debug, Default, Clone)]
 pub struct TextLearnable {
     representations: std::collections::HashMap<RepresentationId, std::rc::Rc<TextRepresentation>>,

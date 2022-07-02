@@ -16,7 +16,7 @@ enum Direction {
 /// Program to generate a set of learnables, decks written to /tmp/
 #[derive(Parser, Debug)]
 #[clap(long_about = None)]
-struct Argzs {
+struct Args {
     /// The starting number (inclusive).
     min: u64,
 
@@ -113,7 +113,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let learnable_id_base: u128 = 1656462468 << 32; // Totally legit unique number!
 
-    let args = Argzs::parse();
+    let args = Args::parse();
 
     let mut learnables = vec![];
 

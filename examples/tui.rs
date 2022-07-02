@@ -10,6 +10,9 @@ use memorizer::text::{load_text_learnables, TextRepresentation};
 use memorizer::training::Training;
 use memorizer::traits::{Question, Record, RepresentationId, Score};
 
+
+use clap::{Parser};
+
 use std::rc::Rc;
 
 use crossterm::{
@@ -71,20 +74,35 @@ struct App {
     record: Option<Record>,
 }
 
+/// Program to generate a set of learnables, decks written to /tmp/
+#[derive(Parser, Debug)]
+#[clap(long_about = None)]
+struct Args {
+    /// The yaml log file to read (and write) records to. 
+    log_file: String,
+
+    /// The yaml files with learnables to load.
+    #[clap(required = true)]
+    learnables: Vec<String>,
+}
+
 impl App {
     fn new() -> Result<App, Box<dyn Error>> {
-        let learnables = load_text_learnables(
-            &std::env::args()
-                .nth(1)
-                .expect("Provide argument to learnables.yaml"),
-        )?;
-        let recorder = YamlRecorder::new("../log.yaml")?;
+        let args = Args::parse();
+        let recorder = YamlRecorder::new(&args.log_file)?;
+
+        let mut collected_learnables = vec![];
+        for learnable_file in args.learnables.iter() {
+            let learnables = load_text_learnables(&learnable_file)?;
+            collected_learnables.extend(learnables);
+        }
+
 
         // let config: RecallCurveConfig = Default::default();
         // let selector = RecallCurveSelector::new(config);
         let selector = SuperMemo2Selector::new();
 
-        let training = Training::new(learnables, Box::new(recorder), Box::new(selector));
+        let training = Training::new(collected_learnables, Box::new(recorder), Box::new(selector));
         Ok(App {
             input: String::new(),
             training,

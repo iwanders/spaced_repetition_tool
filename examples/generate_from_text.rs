@@ -1,5 +1,5 @@
 use memorizer::text::{save_text_learnables, TextLearnable, TextRepresentation, TextTransform};
-use memorizer::traits::{LearnableId, RepresentationId, TransformId, Id};
+use memorizer::traits::{Id, LearnableId, RepresentationId, TransformId};
 
 use clap::Parser;
 
@@ -19,7 +19,7 @@ struct Args {
     /// The transform described in human terms, for to direction.
     #[clap(short, long)]
     transform_to: Option<String>,
-    
+
     /// The transform described in human terms, for reverse direction.
     #[clap(long)]
     transform_reverse: Option<String>,
@@ -50,12 +50,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let transform_to_text = args
         .transform_to
         .unwrap_or(String::from("Hopefully you know what to do..."));
-    let transform_to = TextTransform::new(&transform_to_text, TransformId(str_to_hash(&transform_to_text)));
+    let transform_to = TextTransform::new(
+        &transform_to_text,
+        TransformId(str_to_hash(&transform_to_text)),
+    );
 
     let transform_reverse_text = args
         .transform_reverse
         .unwrap_or(String::from("Hopefully you know what to do..."));
-    let transform_reverse = TextTransform::new(&transform_reverse_text, TransformId(str_to_hash(&transform_reverse_text)));
+    let transform_reverse = TextTransform::new(
+        &transform_reverse_text,
+        TransformId(str_to_hash(&transform_reverse_text)),
+    );
 
     for input in args.inputs.iter() {
         use std::io::BufRead;
@@ -84,7 +90,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             if args.include_reverse {
                 edges.push((t2, transform_reverse.clone(), t1));
             }
-
 
             let learnable_id = str_to_hash(&(transform_to_text.clone() + line));
 

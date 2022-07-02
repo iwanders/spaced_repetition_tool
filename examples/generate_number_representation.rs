@@ -81,15 +81,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         if !valid_ascii(value) {
             panic!("Requested ascii value for non valid number.");
         }
-        let unprintables: std::collections::HashMap<u64, &str> =
-            std::collections::HashMap::from([
-                (0, "NUL"),
-                (1, "SOH"),
-                (2, "STX"),
-                (3, "ETX"),
-                (10, "LF"),
-                (13, "CR"),
-            ]);
+        let unprintables: std::collections::HashMap<u64, &str> = std::collections::HashMap::from([
+            (0, "NUL"),
+            (1, "SOH"),
+            (2, "STX"),
+            (3, "ETX"),
+            (10, "LF"),
+            (13, "CR"),
+        ]);
         if let Some(v) = unprintables.get(&value) {
             return TextRepresentation::new(v, RepresentationId(value + ASCII_SHIFT));
         }

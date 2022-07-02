@@ -1,6 +1,6 @@
 // Just a simple implementation for the Recorder trait.
 
-use crate::traits::{MemorizerError, Record, Recorder, Question};
+use crate::traits::{MemorizerError, Question, Record, Recorder};
 use serde::{Deserialize, Serialize};
 
 /// Recorder that only keeps all records in memory, but it is (de)serializable to easily allow
@@ -27,10 +27,7 @@ impl Recorder for MemoryRecorder {
         Ok(())
     }
 
-    fn get_records_by_question(
-        &self,
-        question: &Question,
-    ) -> Result<Vec<Record>, MemorizerError> {
+    fn get_records_by_question(&self, question: &Question) -> Result<Vec<Record>, MemorizerError> {
         Ok(self
             .records
             .iter()
@@ -87,11 +84,7 @@ impl Recorder for YamlRecorder {
         self.write()
     }
 
-
-    fn get_records_by_question(
-        &self,
-        question: &Question,
-    ) -> Result<Vec<Record>, MemorizerError> {
+    fn get_records_by_question(&self, question: &Question) -> Result<Vec<Record>, MemorizerError> {
         self.recorder.get_records_by_question(question)
     }
 }

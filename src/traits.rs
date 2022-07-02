@@ -121,10 +121,7 @@ pub trait Recorder: std::fmt::Debug {
     fn store_record(&mut self, record: &Record) -> Result<(), MemorizerError>;
 
     /// Retrieve records for a particular question.
-    fn get_records_by_question(
-        &self,
-        question: &Question,
-    ) -> Result<Vec<Record>, MemorizerError>;
+    fn get_records_by_question(&self, question: &Question) -> Result<Vec<Record>, MemorizerError>;
 }
 
 /// The entity that decided what questions to ask. Only works on Ids.

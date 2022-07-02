@@ -1,7 +1,7 @@
 // Hacked up from
 // https://github.com/fdehau/tui-rs/blob/v0.18.0/examples/user_input.rs
 
-// This is a pretty clunky text interface, but hey it works.
+// A pretty clunky terminal interface to ask questions...
 
 // use memorizer::algorithm::memorize::recall_curve::{RecallCurveConfig, RecallCurveSelector};
 use memorizer::algorithm::super_memo_2::SuperMemo2Selector;
@@ -257,27 +257,27 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: App) -> io::Result<(
 }
 
 fn ui<B: Backend>(f: &mut Frame<B>, app: &App) {
-    let vertical_split = Layout::default()
-        .direction(Direction::Horizontal)
-        .constraints([Constraint::Percentage(30), Constraint::Percentage(70)].as_ref())
-        .split(f.size());
+    // let vertical_split = Layout::default()
+    // .direction(Direction::Horizontal)
+    // .constraints([Constraint::Percentage(30), Constraint::Percentage(70)].as_ref())
+    // .split(f.size());
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints(
             [
-                Constraint::Percentage(30),
+                Constraint::Length(3), // help text.
                 Constraint::Length(1), // from
-                Constraint::Percentage(5),
+                Constraint::Length(3),
                 Constraint::Length(1), // transform
-                Constraint::Percentage(5),
+                Constraint::Length(3),
                 Constraint::Length(1), // input
                 Constraint::Length(1), // real answer
                 Constraint::Length(1), // Scorebar
-                Constraint::Percentage(30),
+                Constraint::Length(1), // Filler, gets stretched.
             ]
             .as_ref(),
         )
-        .split(vertical_split[1]);
+        .split(f.size());
 
     const FROM: usize = 1;
     const TRANSFORM: usize = 3;
@@ -299,7 +299,7 @@ fn ui<B: Backend>(f: &mut Frame<B>, app: &App) {
     let mut text = Text::from(Spans::from(msg));
     text.patch_style(style);
     let help_message = Paragraph::new(text);
-    f.render_widget(help_message, vertical_split[0]);
+    f.render_widget(help_message, chunks[0]);
 
     // .alignment(tui::layout::Alignment::Center)
     let orig = Paragraph::new(app.original.as_ref()).block(Block::default());

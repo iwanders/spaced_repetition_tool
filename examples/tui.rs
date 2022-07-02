@@ -97,7 +97,6 @@ impl App {
             collected_learnables.extend(learnables);
         }
 
-
         // let config: RecallCurveConfig = Default::default();
         // let selector = RecallCurveSelector::new(config);
         let selector = SuperMemo2Selector::new();

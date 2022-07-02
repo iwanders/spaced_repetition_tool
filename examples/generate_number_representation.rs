@@ -189,7 +189,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     save_text_learnables(
         &format!("/tmp/deck_{min}_{max}_{z}.yaml"),
         &format!("{pretty} for {min} to {max}"),
-        1656462468,
         &learnables,
     )?;
     Ok(())

@@ -136,7 +136,6 @@ impl Learnable for TextLearnable {
 #[derive(Debug, Default, Deserialize, Serialize)]
 pub struct TextLearnableStorage {
     name: String,
-    id: Id,
     transformations: Vec<TextTransform>,
     representations: Vec<TextRepresentation>,
     learnables: Vec<Vec<(RepresentationId, TransformId, RepresentationId)>>,
@@ -190,7 +189,7 @@ pub fn load_text_learnables(
                 })?;
                 edges.push((repr1.clone(), tr.clone(), repr2.clone()));
             }
-            let learnable = TextLearnable::new(&edges, LearnableId(i as Id + storage.id));
+            let learnable = TextLearnable::new(&edges, LearnableId(i as Id));
 
             res.push(Box::new(learnable));
         }
@@ -206,12 +205,10 @@ pub fn load_text_learnables(
 pub fn save_text_learnables(
     filename: &str,
     name: &str,
-    id: Id,
     learnables: &[TextLearnable],
 ) -> Result<(), Box<dyn std::error::Error>> {
     let mut storage = TextLearnableStorage {
         name: name.to_owned(),
-        id,
         ..Default::default()
     };
     use std::collections::HashMap;

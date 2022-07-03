@@ -10,9 +10,9 @@ that are not explicitly defined, but instead derived from following matching rep
 transformation pairs.
 
 ## Design
-The [`traits.rs`](/src/traits.rs) file described the main concepts;
+The [`traits.rs`](/src/traits.rs) file describes the main concepts;
 - `Representation` this represents a concept/fact to learn in a particular representation, so
-  `0x13`, 19 or `10011` would be different representations of the same `Learnable` concept.
+  `0x13`, `19` or `10011` would be different representations of the same `Learnable` concept.
 - `Transform` A particular transform that can map one representation to another one, so
   `hexadecimal to decimal`, or `decimal to binary`.
 - `Selector` is what algorithms should implement.

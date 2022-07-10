@@ -72,6 +72,9 @@ struct App {
 
     /// The proposed record for this answer.
     record: Option<Record>,
+
+    /// The score to override with if set.
+    default_score: Option<f64>,
 }
 
 #[derive(Debug, ValueEnum, Clone, Eq, PartialEq, Hash)]
@@ -87,6 +90,10 @@ struct Args {
     /// The directions to generate for each number in this range.
     #[clap(value_enum, long)]
     selector: Option<SelectorArg>,
+
+    /// Set a score instead of calculating it from the presentation.
+    #[clap(long)]
+    default_score: Option<f64>,
 
     /// The yaml log file to read (and write) records to.
     log_file: String,
@@ -131,6 +138,7 @@ impl App {
             state: ApplicationState::QuestionAsked,
             question: Default::default(),
             record: Default::default(),
+            default_score: args.default_score,
         })
     }
 
@@ -144,13 +152,18 @@ impl App {
     fn process_answer(&mut self) {
         // do something with the current input.
         let z = Rc::new(TextRepresentation::new(&self.input, RepresentationId(0)));
-        let (record, truth) = self
+        let (mut record, truth) = self
             .training
             .get_answer(&self.question, z)
             .expect("should succeed");
 
         self.answer_score = record.score;
-        self.answer_correct = record.score == 1.0;
+        self.answer_correct = self.answer_score == 1.0;
+
+        if let Some(override_score) = self.default_score {
+            self.answer_score = override_score.clamp(0.0, 1.0);
+            record.score = override_score.clamp(0.0, 1.0);
+        }
 
         self.record = Some(record);
 

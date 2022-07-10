@@ -8,7 +8,7 @@ use clap::Parser;
 #[derive(Parser, Debug)]
 #[clap(long_about = None)]
 struct Args {
-    /// The starting number (inclusive).
+    /// The output file (inclusive).
     #[clap(short, long)]
     output: String,
 

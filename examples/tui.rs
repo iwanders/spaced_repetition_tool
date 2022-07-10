@@ -74,7 +74,6 @@ struct App {
     record: Option<Record>,
 }
 
-
 #[derive(Debug, ValueEnum, Clone, Eq, PartialEq, Hash)]
 enum SelectorArg {
     SuperMemo2,
@@ -85,7 +84,6 @@ enum SelectorArg {
 #[derive(Parser, Debug)]
 #[clap(long_about = None)]
 struct Args {
-
     /// The directions to generate for each number in this range.
     #[clap(value_enum, long)]
     selector: Option<SelectorArg>,
@@ -97,7 +95,6 @@ struct Args {
     #[clap(required = true)]
     learnables: Vec<String>,
 }
-
 
 impl App {
     fn new() -> Result<App, Box<dyn Error>> {
@@ -111,11 +108,11 @@ impl App {
         }
 
         let selector_chosen = args.selector.unwrap_or(SelectorArg::SuperMemo2);
-        let selector : Box<dyn Selector>;
+        let selector: Box<dyn Selector>;
         match selector_chosen {
             SelectorArg::SuperMemo2 => {
                 selector = Box::new(SuperMemo2Selector::new());
-            },
+            }
             SelectorArg::RecallCurveSelector => {
                 let config: RecallCurveConfig = Default::default();
                 selector = Box::new(RecallCurveSelector::new(config));

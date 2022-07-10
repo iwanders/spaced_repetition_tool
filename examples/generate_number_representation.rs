@@ -11,21 +11,39 @@ enum Direction {
     DecHex,
     AsciiDec, // really functions as utf8, but who wants to write emoji's?
     DecAscii,
+    AsciiHex,
+    HexAscii,
 }
 
 /// Program to generate a set of learnables, decks written to /tmp/
 #[derive(Parser, Debug)]
 #[clap(long_about = None)]
 struct Args {
+    /// The output directory.
+    #[clap(short, long)]
+    output_dir: Option<String>,
+
     /// The starting number (inclusive).
-    min: u64,
+    min: String,
 
     /// The end number (inclusive).
-    max: u64,
+    max: String,
 
     /// The directions to generate for each number in this range.
     #[clap(value_enum, required = true)]
     directions: Vec<Direction>,
+}
+
+fn parse_input(v: &str) -> u64 {
+    use std::str::FromStr;
+    if v.starts_with("0x") {
+        return u64::from_str_radix(v.trim_start_matches("0x"), 16).expect("unable to parse hex");
+    }
+    if v.starts_with("0b") {
+        return u64::from_str_radix(v.trim_start_matches("0b"), 2).expect("unable to parse binary");
+    }
+
+    return u64::from_str(v).expect("unable to parse binary");
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -62,6 +80,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             (
                 Direction::DecAscii,
                 TextTransform::new("decimal to ascii", TransformId(0xB2A5C11 << 32)),
+            ),
+            (
+                Direction::AsciiHex,
+                TextTransform::new("ascii to hexadecimal", TransformId(0xA5C112482D << 32)),
+            ),
+            (
+                Direction::HexAscii,
+                TextTransform::new("hexadecimal to ascii", TransformId(0x482D2A5C11 << 32)),
             ),
         ]);
 
@@ -116,7 +142,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut learnables = vec![];
 
-    for i in args.min..=args.max {
+    let iter_min = parse_input(&args.min);
+    let iter_max = parse_input(&args.max);
+
+    for i in iter_min..=iter_max {
         let v = i as u64;
         let mut edges = vec![];
         for direction in args.directions.iter() {
@@ -167,6 +196,24 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         ));
                     }
                 }
+                m if m == &Direction::AsciiHex => {
+                    if valid_ascii(v) {
+                        edges.push((
+                            make_ascii(v),
+                            transforms.get(&m).unwrap().clone(),
+                            make_hex(v),
+                        ));
+                    }
+                }
+                m if m == &Direction::HexAscii => {
+                    if valid_ascii(v) {
+                        edges.push((
+                            make_hex(v),
+                            transforms.get(&m).unwrap().clone(),
+                            make_ascii(v),
+                        ));
+                    }
+                }
                 _ => {}
             }
         }
@@ -186,7 +233,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let min = args.min;
     let max = args.max;
     save_text_learnables(
-        &format!("/tmp/deck_{min}_{max}_{z}.yaml"),
+        &(args.output_dir.unwrap_or("/tmp".to_owned()) + &format!("/deck_{min}_{max}_{z}.yaml")),
         &format!("{pretty} for {min} to {max}"),
         &learnables,
     )?;

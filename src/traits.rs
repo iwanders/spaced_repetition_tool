@@ -102,7 +102,7 @@ pub trait Learnable: std::fmt::Debug {
     fn id(&self) -> LearnableId;
 }
 
-/// Record of an question, the score obtained answering it and a timestamp.
+/// Record of a question, the score obtained answering it and a timestamp.
 #[derive(Debug, PartialEq, Copy, Clone, Deserialize, Serialize)]
 pub struct Record {
     /// The question as posed.

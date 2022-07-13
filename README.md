@@ -9,6 +9,22 @@ a unique identifier and transformation get one as well, this will allow for crea
 that are not explicitly defined, but instead derived from following matching representation and
 transformation pairs.
 
+## Quick-Start
+
+The [`example_files`](/example_files/) folder contains an English to French conjucation file. Generate the learnables by running
+
+```
+cargo run --example generate_from_text -- example_files/englins_to_french_verbs.txt --output example_files/eng_fr_learnables.yaml
+```
+Create an output file for logging purpouses, on UNIX systems one could run
+```
+touch /tmp/log.txt
+```
+Run the `tui` example 
+```
+cargo run --example tui -- /tmp/log.txt example_files/eng_fr_learnables.yaml
+```
+
 ## Design
 The [`traits.rs`](/src/traits.rs) file describes the main concepts;
 - `Representation` this represents a concept/fact to learn in a particular representation, so

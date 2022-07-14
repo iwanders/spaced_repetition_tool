@@ -14,12 +14,9 @@ transformation pairs.
 The [`example_files`](/example_files/) folder contains an English to French conjucation file. Generate the learnables by running
 
 ```
-cargo run --example generate_from_text -- example_files/englins_to_french_verbs.txt --output example_files/eng_fr_learnables.yaml
+cargo run --example generate_from_text -- example_files/eng_fr_verbs.txt --output example_files/eng_fr_learnables.yaml
 ```
-Create an output file for logging purpouses, on UNIX systems one could run
-```
-touch /tmp/log.txt
-```
+
 Run the `tui` example 
 ```
 cargo run --example tui -- /tmp/log.txt example_files/eng_fr_learnables.yaml

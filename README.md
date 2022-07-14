@@ -9,7 +9,7 @@ a unique identifier and transformation get one as well, this will allow for crea
 that are not explicitly defined, but instead derived from following matching representation and
 transformation pairs.
 
-## Quick-Start
+## Quick Start
 
 The [`example_files`](/example_files/) folder contains an English to French conjucation file. Generate the learnables by running
 
@@ -19,7 +19,7 @@ cargo run --example generate_from_text -- example_files/eng_fr_verbs.txt --outpu
 
 Run the `tui` example 
 ```
-cargo run --example tui -- /tmp/log.txt example_files/eng_fr_learnables.yaml
+cargo run --example tui -- /tmp/log.yaml example_files/eng_fr_learnables.yaml
 ```
 
 ## Design

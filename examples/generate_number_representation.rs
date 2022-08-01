@@ -23,6 +23,10 @@ struct Args {
     #[clap(short, long)]
     output_dir: Option<String>,
 
+    /// The output name, used to overwrite the default of deck_{numbers}_{directions}.yaml
+    #[clap(long)]
+    name: Option<String>,
+
     /// The number specification, "0..=3,4,0b101" gives (0, 1, 2, 3, 4, 5), "0x10..=0x20" gives
     /// (16 to 32 (inclusive)).
     number_spec: String,
@@ -315,10 +319,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .collect::<Vec<String>>();
     let z = directions.clone().join("_");
     let pretty = directions.clone().join(", ");
-
     let numbers = args.number_spec;
+
+    let name_used = if let Some(out_name) = args.name {
+        out_name
+    } else {
+        format!("/deck_{numbers}_{z}.yaml")
+    };
+
     save_text_learnables(
-        &(args.output_dir.unwrap_or("/tmp".to_owned()) + &format!("/deck_{numbers}_{z}.yaml")),
+        &(args.output_dir.unwrap_or("/tmp".to_owned()) + &name_used),
         &format!("{pretty} for {numbers}"),
         &learnables,
     )?;

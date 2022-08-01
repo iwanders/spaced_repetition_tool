@@ -23,18 +23,17 @@ struct Args {
     #[clap(short, long)]
     output_dir: Option<String>,
 
-    /// The starting number (inclusive).
-    min: String,
-
-    /// The end number (inclusive).
-    max: String,
+    /// The number specification, "0..=3,4,0b101" gives (0, 1, 2, 3, 4, 5), "0x10..=0x20" gives
+    /// (16 to 32 (inclusive)).
+    number_spec: String,
 
     /// The directions to generate for each number in this range.
     #[clap(value_enum, required = true)]
     directions: Vec<Direction>,
 }
 
-fn parse_input(v: &str) -> u64 {
+/// Convert a single number.
+fn parse_number(v: &str) -> u64 {
     use std::str::FromStr;
     if v.starts_with("0x") {
         return u64::from_str_radix(v.trim_start_matches("0x"), 16).expect("unable to parse hex");
@@ -44,6 +43,65 @@ fn parse_input(v: &str) -> u64 {
     }
 
     return u64::from_str(v).expect("unable to parse binary");
+}
+
+/// Convert a string of number specifications.
+fn parse_number_spec(v: &str) -> Vec<u64> {
+    let mut res: Vec<u64> = vec![];
+    for r in v.split(",") {
+        let mut start_end = r.split("..");
+        if start_end.clone().count() == 1 {
+            res.push(parse_number(start_end.next().expect("Must have a value")));
+            continue;
+        }
+
+        let start = start_end
+            .next()
+            .expect("Should've had a start of the range");
+        let end_string = start_end.next().expect("Should've had a end of the range");
+
+        let start = parse_number(&start);
+        let end: u64;
+        if end_string.starts_with("=") {
+            end = parse_number(&end_string[1..]) + 1;
+        } else {
+            end = parse_number(&end_string);
+        }
+        for i in start..end {
+            res.push(i);
+        }
+    }
+    res
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_input() {
+        assert_eq!(parse_number(&"30"), 30);
+        assert_eq!(parse_number(&"0x30"), 48);
+        assert_eq!(parse_number(&"0b1101"), 13);
+
+        assert_eq!(parse_number_spec("0..3"), Vec::<u64>::from([0, 1, 2]));
+        assert_eq!(parse_number_spec("0..3,4"), Vec::<u64>::from([0, 1, 2, 4]));
+        assert_eq!(
+            parse_number_spec("0..=3,4"),
+            Vec::<u64>::from([0, 1, 2, 3, 4])
+        );
+        assert_eq!(
+            parse_number_spec("0..=3,4,0b101"),
+            Vec::<u64>::from([0, 1, 2, 3, 4, 5])
+        );
+        assert_eq!(
+            parse_number_spec("0..=3,4,0x20"),
+            Vec::<u64>::from([0, 1, 2, 3, 4, 32])
+        );
+        assert_eq!(
+            parse_number_spec("0x10..=0x15,0b010..=0b100"),
+            Vec::<u64>::from([16, 17, 18, 19, 20, 21, 2, 3, 4])
+        );
+    }
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -142,10 +200,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut learnables = vec![];
 
-    let iter_min = parse_input(&args.min);
-    let iter_max = parse_input(&args.max);
+    let numbers = parse_number_spec(&args.number_spec);
 
-    for i in iter_min..=iter_max {
+    for i in numbers {
         let v = i as u64;
         let mut edges = vec![];
         for direction in args.directions.iter() {
@@ -230,11 +287,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .collect::<Vec<String>>();
     let z = directions.clone().join("_");
     let pretty = directions.clone().join(", ");
-    let min = args.min;
-    let max = args.max;
+
+    let numbers = args.number_spec;
     save_text_learnables(
-        &(args.output_dir.unwrap_or("/tmp".to_owned()) + &format!("/deck_{min}_{max}_{z}.yaml")),
-        &format!("{pretty} for {min} to {max}"),
+        &(args.output_dir.unwrap_or("/tmp".to_owned()) + &format!("/deck_{numbers}_{z}.yaml")),
+        &format!("{pretty} for {numbers}"),
         &learnables,
     )?;
     Ok(())

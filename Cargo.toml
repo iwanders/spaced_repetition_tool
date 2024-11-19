@@ -15,10 +15,13 @@ rand_distr =  "0.4.3"
 tui = "0.18.0"
 crossterm = "0.23.2"
 unicode-width = "0.1.9"
-clap = { version="3.2.8", features = ["derive"] }
+clap = { version="4.5.21", features = ["derive"] }
 md-5 = "0.10.1"
 
 # Hosted version
 serde_json = "1.0.94"
 tiny_http = "0.12"
 ascii = "1.1.0"
+parking_lot = "0.12.3"
+# clap
+

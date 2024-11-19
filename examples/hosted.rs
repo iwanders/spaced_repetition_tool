@@ -1,6 +1,6 @@
 // use memorizer::recorder::YamlRecorder;
 // use memorizer::text::{load_text_learnables, TextRepresentation};
-// use memorizer::training::Training;
+use memorizer::training::Training;
 // use memorizer::traits::{Question, Record, RepresentationId, Score, Selector};
 
 use std::sync::Arc;
@@ -43,10 +43,20 @@ fn file_to_response(path: &std::path::Path, file: std::fs::File) -> Response<std
     })
 }
 
+
+use parking_lot::RwLock;
+struct TrainingInterface {
+    training: RwLock<Training>,
+}
+impl TrainingInterface {
+
+}
+
 use std::path::PathBuf;
 use tiny_http::Request;
 use tiny_http::Response;
 use tiny_http::ResponseBox;
+
 type BackendError = Box<dyn std::error::Error + Send + Sync>;
 struct Backend {
     frontend_root: PathBuf,

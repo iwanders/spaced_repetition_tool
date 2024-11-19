@@ -74,6 +74,7 @@ impl Backend {
             path
         };
         let path = self.frontend_root.join(Path::new(&path));
+        println!("Path: {path:?}");
         if !path.is_file() {
             return Ok(None);
         }
@@ -117,7 +118,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     println!("Now listening on port {}", port);
 
     let backend = Arc::new(Backend::new(
-        &std::env::current_dir()?,
+        &std::env::current_dir()?.join("examples/www/"),
     )?);
 
     // Serve the webserver with 4 threads.
@@ -134,7 +135,12 @@ pub fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
                     &'a dyn Fn(&mut Request) -> Result<Option<ResponseBox>, BackendError>;
 
                 let order: [Handler; 2] =
-                    [&|r| backend.request_file(r), &|r| backend.backend_api(r)];
+                    [
+                        // Files take precedence
+                        &|r| backend.request_file(r),
+                        // over api endpoints
+                        &|r| backend.backend_api(r)
+                    ];
 
                 let url = rq.url().to_string();
 

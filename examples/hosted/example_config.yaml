@@ -1,0 +1,7 @@
+selector: SuperMemo2
+user_decks:
+  - username: Ivor
+    decks:
+      - name: Hex2Dec
+        #cargo run --example generate_from_text -- example_files/hex_dec_conversions.txt --output /tmp/hex.yaml
+        path: /tmp/hex.yaml

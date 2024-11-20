@@ -65,7 +65,6 @@ struct UserDecks {
 struct HostConfig {
     selector: SelectorOptions,
     user_decks: Vec<UserDecks>,
-    storage_dir: String,
 }
 
 

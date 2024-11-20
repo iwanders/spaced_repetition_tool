@@ -9,6 +9,10 @@ a unique identifier and transformation get one as well, this will allow for crea
 that are not explicitly defined, but instead derived from following matching representation and
 transformation pairs.
 
+Note from self (trying to use this over 2.5 years after initially writing it): Definitely a bit clunky
+and clearly one of my earlier Rust projects when I thought everything needed a trait, even though
+that abstraction is not used anywhere in the codebase. Use at your own risk =)
+
 ## Quick Start
 
 The [`example_files`](/example_files/) folder contains an English to French conjucation file. Generate the learnables by running

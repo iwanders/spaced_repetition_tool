@@ -104,6 +104,13 @@ impl TrainingBackend {
     pub fn users(&self) -> Vec<UserName> {
         self.entries.keys().cloned().collect()
     }
+    pub fn decks(&self, user: &UserName) -> Vec<DeckName> {
+        if let Some(user_decks) = self.entries.get(user) {
+            user_decks.keys().into_iter().cloned().collect()
+        } else {
+            vec![]
+        }
+    }
 }
 
 impl TrainingBackend {
@@ -190,7 +197,7 @@ impl Hoster {
                         .boxed(),
                 ))
             }
-            _ if path.starts_with("users") => {
+            "users" => {
                 #[derive(Debug, Clone, PartialOrd, Ord, Eq, PartialEq, Serialize, Deserialize)]
                 struct UserResponse {
                     users: Vec<String>,
@@ -199,6 +206,28 @@ impl Hoster {
                     users: self
                         .backend
                         .users()
+                        .into_iter()
+                        .map(|z| z.0.clone())
+                        .collect(),
+                };
+
+                Ok(Some(
+                    tiny_http::Response::from_string(serde_json::to_string_pretty(&resp).unwrap())
+                        .with_status_code(tiny_http::StatusCode(200))
+                        .boxed(),
+                ))
+            }
+            full_path if path.ends_with("/deck") => {
+                let mut parts = full_path.split("/");
+                #[derive(Debug, Clone, PartialOrd, Ord, Eq, PartialEq, Serialize, Deserialize)]
+                struct DeckResponse {
+                    decks: Vec<String>,
+                }
+                let user = UserName(parts.next().unwrap_or("no user").to_owned());
+                let resp = DeckResponse {
+                    decks: self
+                        .backend
+                        .decks(&user)
                         .into_iter()
                         .map(|z| z.0.clone())
                         .collect(),

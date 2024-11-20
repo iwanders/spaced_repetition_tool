@@ -83,7 +83,7 @@ enum SelectorArg {
     RecallCurveSelector,
 }
 
-/// Program to generate a set of learnables, decks written to /tmp/
+/// Interactive text interface to learn decks.
 #[derive(Parser, Debug)]
 #[clap(long_about = None)]
 struct Args {

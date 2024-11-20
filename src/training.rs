@@ -12,7 +12,8 @@ pub struct Training {
     recorder: Box<dyn Recorder>,
     selector: Box<dyn Selector>,
     transforms: std::collections::HashMap<TransformId, std::sync::Arc<dyn Transform>>,
-    representations: std::collections::HashMap<RepresentationId, std::sync::Arc<dyn Representation>>,
+    representations:
+        std::collections::HashMap<RepresentationId, std::sync::Arc<dyn Representation>>,
 }
 
 impl Training {

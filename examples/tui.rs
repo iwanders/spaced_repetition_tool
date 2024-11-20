@@ -13,7 +13,6 @@ use memorizer::traits::{Question, Record, RepresentationId, Score, Selector};
 
 use clap::{Parser, ValueEnum};
 
-
 use crossterm::{
     event::{self, Event, KeyCode},
     execute,

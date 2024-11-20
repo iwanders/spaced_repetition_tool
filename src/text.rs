@@ -79,7 +79,8 @@ type TextEdge = (TextRepresentation, TextTransform, TextRepresentation);
 /// A text learnable holds several learnables.
 #[derive(Debug, Default, Clone)]
 pub struct TextLearnable {
-    representations: std::collections::HashMap<RepresentationId, std::sync::Arc<TextRepresentation>>,
+    representations:
+        std::collections::HashMap<RepresentationId, std::sync::Arc<TextRepresentation>>,
     transforms: std::collections::HashMap<TransformId, std::sync::Arc<TextTransform>>,
     edges: Vec<Question>,
     id: LearnableId,
@@ -144,7 +145,8 @@ pub struct TextLearnableStorage {
 pub fn load_text_learnables(
     filename: &str,
 ) -> Result<Vec<Box<dyn Learnable>>, Box<dyn std::error::Error + Send + Sync>> {
-    let file = std::fs::File::open(filename).map_err(|e| format!("failed to open {filename}: {e}"))?;
+    let file =
+        std::fs::File::open(filename).map_err(|e| format!("failed to open {filename}: {e}"))?;
     if filename.ends_with("yaml") {
         let yaml: serde_yaml::Value = serde_yaml::from_reader(file)?;
         let storage: TextLearnableStorage = serde_yaml::from_value(yaml)?;

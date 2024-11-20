@@ -1,7 +1,7 @@
 use memorizer::recorder::YamlRecorder;
 use memorizer::text::{load_text_learnables, TextRepresentation};
 use memorizer::training::Training;
-use memorizer::traits::{Question, Record, RepresentationId, Score, Selector, Recorder, Learnable};
+use memorizer::traits::{Learnable, Question, Record, Recorder, RepresentationId, Score, Selector};
 
 use std::sync::Arc;
 use std::thread;
@@ -59,7 +59,6 @@ impl SelectorOptions {
                 Box::new(RecallCurveSelector::new(Default::default()))
             }
         }
-        
     }
 }
 
@@ -89,7 +88,6 @@ struct HostConfig {
     user_decks: Vec<UserDecks>,
 }
 
-
 use parking_lot::RwLock;
 
 type ThreadsafeTraining = RwLock<Training>;
@@ -98,15 +96,11 @@ type UserTraining = std::collections::HashMap<DeckName, ThreadsafeTraining>;
 
 #[derive(Default)]
 struct TrainingBackend {
-    entries: std::collections::HashMap<UserName, UserTraining>
+    entries: std::collections::HashMap<UserName, UserTraining>,
 }
 
-
 impl TrainingBackend {
-    pub fn from_config(
-        config: &HostConfig,
-        storage_dir: &str
-    ) -> Result<Self, BackendError> {
+    pub fn from_config(config: &HostConfig, storage_dir: &str) -> Result<Self, BackendError> {
         let mut res = TrainingBackend::default();
         let storage_dir = PathBuf::from(storage_dir);
         for user_deck in config.user_decks.iter() {
@@ -116,7 +110,9 @@ impl TrainingBackend {
                 // Load the actual deck.
                 let deck_learnables = load_text_learnables(&deck.path)?;
 
-                let recorder_file_path = storage_dir.join(&user_deck.username.0).join(format!("{}_recording.yaml", deck.name.0));
+                let recorder_file_path = storage_dir
+                    .join(&user_deck.username.0)
+                    .join(format!("{}_recording.yaml", deck.name.0));
                 let recorder = YamlRecorder::new(&recorder_file_path)?;
                 let training = Training::new(deck_learnables, Box::new(recorder), selector);
                 user_map.insert(deck.name.clone(), training.into());
@@ -138,10 +134,7 @@ struct Hoster {
 }
 
 impl Hoster {
-    pub fn new(
-        frontend_root: &str,
-        backend: TrainingBackend
-    ) -> Result<Self, BackendError> {
+    pub fn new(frontend_root: &str, backend: TrainingBackend) -> Result<Self, BackendError> {
         let frontend_root = PathBuf::from(frontend_root);
         // let frontend_root = frontend_path.join("www");
         if !frontend_root.is_dir() {
@@ -156,11 +149,7 @@ impl Hoster {
     pub fn request_file(&self, rq: &Request) -> Result<Option<ResponseBox>, BackendError> {
         let url = rq.url().to_string();
         let path = url.strip_prefix("/").unwrap();
-        let path = if path == "" {
-            "index.html"
-        } else {
-            path
-        };
+        let path = if path == "" { "index.html" } else { path };
         let path = self.frontend_root.join(Path::new(&path));
         println!("Path: {path:?}");
         if !path.is_file() {
@@ -209,37 +198,32 @@ struct Args {
     config: String,
 
     /// Directory to the frontend www directory, defaults to ./examples/hosted/www to work with `cargo r`
-    #[clap(short, long, default_value="./examples/hosted/www/")]
+    #[clap(short, long, default_value = "./examples/hosted/www/")]
     www: String,
 
-
     /// Storage directory
-    #[clap(short, long, default_value="/tmp/")]
-    storage: String
+    #[clap(short, long, default_value = "/tmp/")]
+    storage: String,
 }
-
 
 pub fn main() -> Result<(), BackendError> {
     let v = tiny_http::Server::http("0.0.0.0:8080")?;
     let server = Arc::new(v);
-    let port = server.server_addr().to_ip().expect("only using ip sockets").port();
+    let port = server
+        .server_addr()
+        .to_ip()
+        .expect("only using ip sockets")
+        .port();
     println!("Now listening on port {}", port);
 
-
-    
     let args = Args::parse();
 
     let file = std::fs::File::open(args.config)?;
     let config: HostConfig = serde_yaml::from_reader(file)?;
 
-    let training_backend = TrainingBackend::from_config(
-        &config,
-        &args.storage)?;
+    let training_backend = TrainingBackend::from_config(&config, &args.storage)?;
 
-    let backend = Arc::new(Hoster::new(
-        &args.www,
-        training_backend,
-    )?);
+    let backend = Arc::new(Hoster::new(&args.www, training_backend)?);
 
     // Serve the webserver with 4 threads.
     let mut handles = Vec::new();
@@ -254,13 +238,12 @@ pub fn main() -> Result<(), BackendError> {
                 type Handler<'a> =
                     &'a dyn Fn(&mut Request) -> Result<Option<ResponseBox>, BackendError>;
 
-                let order: [Handler; 2] =
-                    [
-                        // Files take precedence
-                        &|r| backend.request_file(r),
-                        // over api endpoints
-                        &|r| backend.backend_api(r)
-                    ];
+                let order: [Handler; 2] = [
+                    // Files take precedence
+                    &|r| backend.request_file(r),
+                    // over api endpoints
+                    &|r| backend.backend_api(r),
+                ];
 
                 let url = rq.url().to_string();
 

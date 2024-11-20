@@ -1,7 +1,7 @@
-// use memorizer::recorder::YamlRecorder;
-// use memorizer::text::{load_text_learnables, TextRepresentation};
+use memorizer::recorder::YamlRecorder;
+use memorizer::text::{load_text_learnables, TextRepresentation};
 use memorizer::training::Training;
-// use memorizer::traits::{Question, Record, RepresentationId, Score, Selector};
+use memorizer::traits::{Question, Record, RepresentationId, Score, Selector, Recorder, Learnable};
 
 use std::sync::Arc;
 use std::thread;
@@ -43,13 +43,48 @@ fn file_to_response(path: &std::path::Path, file: std::fs::File) -> Response<std
     })
 }
 
+#[derive(Deserialize, Serialize, Debug)]
+enum SelectorOptions {
+    SuperMemo2,
+    RecallCurveSelector,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+struct NamedDeck {
+    name: String,
+    path: String,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+struct UserDecks {
+    username: String,
+    decks: Vec<NamedDeck>,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+struct HostConfig {
+    selector: SelectorOptions,
+    user_decks: Vec<UserDecks>,
+    storage_dir: String,
+}
+
 
 use parking_lot::RwLock;
-struct TrainingInterface {
-    training: RwLock<Training>,
+struct TrainingBackend {
+    // training: RwLock<Training>,
 }
-impl TrainingInterface {
+impl TrainingBackend {
+    pub fn from_config(
+        config: &HostConfig,
+        storage_dir: &str
+    ) -> Self {
+        todo!()
+    }
 
+    // pub fn get_question(&self) -> Option<Question> {
+        // let mut training_lock = self.training.write();
+        // training_lock.question()
+    // }
 }
 
 use std::path::PathBuf;
@@ -58,20 +93,24 @@ use tiny_http::Response;
 use tiny_http::ResponseBox;
 
 type BackendError = Box<dyn std::error::Error + Send + Sync>;
-struct Backend {
+struct Hoster {
     frontend_root: PathBuf,
+    backend: TrainingBackend,
 }
 
-impl Backend {
+impl Hoster {
     pub fn new(
-        frontend_root: &std::path::Path,
+        frontend_root: &str,
+        backend: TrainingBackend
     ) -> Result<Self, BackendError> {
+        let frontend_root = PathBuf::from(frontend_root);
         // let frontend_root = frontend_path.join("www");
         if !frontend_root.is_dir() {
             return Err("frontend path not to directory".into());
         }
-        Ok(Backend {
-            frontend_root: frontend_root.to_path_buf(),
+        Ok(Hoster {
+            frontend_root,
+            backend,
         })
     }
 
@@ -121,14 +160,46 @@ impl Backend {
     }
 }
 
+use clap::Parser;
+
+/// A hosted training session
+#[derive(Parser, Debug)]
+#[clap(long_about = None)]
+struct Args {
+    /// The input configuration file.
+    config: String,
+
+    /// Directory to the frontend www directory, defaults to ./examples/www to work with `cargo r`
+    #[clap(short, long, default_value="./examples/www/")]
+    www: String,
+
+
+    /// Storage directory
+    #[clap(short, long, default_value="/tmp/")]
+    storage: String
+}
+
+
 pub fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let v = tiny_http::Server::http("0.0.0.0:8080")?;
     let server = Arc::new(v);
     let port = server.server_addr().to_ip().expect("only using ip sockets").port();
     println!("Now listening on port {}", port);
 
-    let backend = Arc::new(Backend::new(
-        &std::env::current_dir()?.join("examples/www/"),
+
+    
+    let args = Args::parse();
+
+    let file = std::fs::File::open(args.config)?;
+    let config: HostConfig = serde_yaml::from_reader(file)?;
+
+    let training_backend = TrainingBackend::from_config(
+        &config,
+        &args.storage);
+
+    let backend = Arc::new(Hoster::new(
+        &args.www,
+        training_backend,
     )?);
 
     // Serve the webserver with 4 threads.

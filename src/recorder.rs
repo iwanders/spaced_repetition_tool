@@ -41,12 +41,12 @@ impl Recorder for MemoryRecorder {
 #[derive(Debug)]
 pub struct YamlRecorder {
     recorder: MemoryRecorder,
-    filename: String,
+    filename: std::path::PathBuf,
 }
 impl YamlRecorder {
     /// Create a new yaml recorder, storing data in filename and if this file already exists it
     /// will load data from there when created.
-    pub fn new(filename: &str) -> Result<Self, MemorizerError> {
+    pub fn new(filename: &std::path::Path) -> Result<Self, MemorizerError> {
         // Read from file if it exists, else empty.
         let recorder: MemoryRecorder;
 

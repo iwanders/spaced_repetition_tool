@@ -63,11 +63,11 @@ impl SelectorOptions {
     }
 }
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, Clone, Eq, Hash, PartialEq)]
 #[serde(transparent)]
 struct DeckName(pub String);
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, Clone, Eq, Hash, PartialEq)]
 #[serde(transparent)]
 struct UserName(pub String);
 
@@ -95,6 +95,8 @@ use parking_lot::RwLock;
 type ThreadsafeTraining = RwLock<Training>;
 
 type UserTraining = std::collections::HashMap<DeckName, ThreadsafeTraining>;
+
+#[derive(Default)]
 struct TrainingBackend {
     entries: std::collections::HashMap<UserName, UserTraining>
 }
@@ -104,14 +106,24 @@ impl TrainingBackend {
     pub fn from_config(
         config: &HostConfig,
         storage_dir: &str
-    ) -> Self {
-        todo!()
-    }
+    ) -> Result<Self, BackendError> {
+        let mut res = TrainingBackend::default();
+        let storage_dir = PathBuf::from(storage_dir);
+        for user_deck in config.user_decks.iter() {
+            let user_map = res.entries.entry(user_deck.username.clone()).or_default();
+            for deck in user_deck.decks.iter() {
+                let selector = config.selector.make_selector();
+                // Load the actual deck.
+                let deck_learnables = load_text_learnables(&deck.path)?;
 
-    // pub fn get_question(&self) -> Option<Question> {
-        // let mut training_lock = self.training.write();
-        // training_lock.question()
-    // }
+                let recorder_file_path = storage_dir.join(&user_deck.username.0).join(format!("{}_recording.yaml", deck.name.0));
+                let recorder = YamlRecorder::new(&recorder_file_path)?;
+                let training = Training::new(deck_learnables, Box::new(recorder), selector);
+                user_map.insert(deck.name.clone(), training.into());
+            }
+        }
+        Ok(res)
+    }
 }
 
 use std::path::PathBuf;
@@ -196,8 +208,8 @@ struct Args {
     /// The input configuration file.
     config: String,
 
-    /// Directory to the frontend www directory, defaults to ./examples/www to work with `cargo r`
-    #[clap(short, long, default_value="./examples/www/")]
+    /// Directory to the frontend www directory, defaults to ./examples/hosted/www to work with `cargo r`
+    #[clap(short, long, default_value="./examples/hosted/www/")]
     www: String,
 
 
@@ -207,7 +219,7 @@ struct Args {
 }
 
 
-pub fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+pub fn main() -> Result<(), BackendError> {
     let v = tiny_http::Server::http("0.0.0.0:8080")?;
     let server = Arc::new(v);
     let port = server.server_addr().to_ip().expect("only using ip sockets").port();
@@ -222,7 +234,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 
     let training_backend = TrainingBackend::from_config(
         &config,
-        &args.storage);
+        &args.storage)?;
 
     let backend = Arc::new(Hoster::new(
         &args.www,

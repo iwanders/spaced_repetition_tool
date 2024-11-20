@@ -143,8 +143,8 @@ pub struct TextLearnableStorage {
 
 pub fn load_text_learnables(
     filename: &str,
-) -> Result<Vec<Box<dyn Learnable>>, Box<dyn std::error::Error>> {
-    let file = std::fs::File::open(filename).expect("file should be opened");
+) -> Result<Vec<Box<dyn Learnable>>, Box<dyn std::error::Error + Send + Sync>> {
+    let file = std::fs::File::open(filename).map_err(|e| format!("failed to open {filename}: {e}"))?;
     if filename.ends_with("yaml") {
         let yaml: serde_yaml::Value = serde_yaml::from_reader(file)?;
         let storage: TextLearnableStorage = serde_yaml::from_value(yaml)?;
@@ -206,7 +206,7 @@ pub fn save_text_learnables(
     filename: &str,
     name: &str,
     learnables: &[TextLearnable],
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let mut storage = TextLearnableStorage {
         name: name.to_owned(),
         ..Default::default()

@@ -28,7 +28,7 @@ pub struct TransformId(pub Id);
 pub type Score = f64;
 
 /// Error in case anything goes wrong.
-pub type MemorizerError = Box<dyn std::error::Error>;
+pub type MemorizerError = Box<dyn std::error::Error + Sync + Send>;
 
 /// A particular representation of data, think about the side of a card.
 pub trait Representation: std::fmt::Debug + Send + Sync {

@@ -103,9 +103,9 @@ struct Args {
 }
 
 impl App {
-    fn new() -> Result<App, Box<dyn Error>> {
+    fn new() -> Result<App, memorizer::traits::MemorizerError> {
         let args = Args::parse();
-        let recorder = YamlRecorder::new(&args.log_file)?;
+        let recorder = YamlRecorder::new(&std::path::PathBuf::from(args.log_file))?;
 
         let mut collected_learnables = vec![];
         for learnable_file in args.learnables.iter() {
@@ -212,7 +212,7 @@ impl App {
     }
 }
 
-fn main() -> Result<(), Box<dyn Error>> {
+fn main() -> Result<(), memorizer::traits::MemorizerError> {
     // create app and run it
     let mut app = App::new()?;
     app.populate_new();

@@ -108,7 +108,7 @@ mod tests {
     }
 }
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() -> Result<(), memorizer::traits::MemorizerError> {
     // We want all id's to be stable at all times, so here we make stable ids, shifting them by
     // 32 bits ought to be enough to cover anyones learning range?
     const DEC_SHIFT: u64 = 0xDEC << 32;

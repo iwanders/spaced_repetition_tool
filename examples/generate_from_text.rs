@@ -42,7 +42,7 @@ fn str_to_hash(v: &str) -> Id {
     u128::from_le_bytes(result) as Id // truncate it.
 }
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() -> Result<(), memorizer::traits::MemorizerError> {
     let args = Args::parse();
 
     let mut learnables = vec![];

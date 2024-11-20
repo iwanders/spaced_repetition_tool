@@ -48,16 +48,38 @@ enum SelectorOptions {
     SuperMemo2,
     RecallCurveSelector,
 }
+impl SelectorOptions {
+    pub fn make_selector(&self) -> Box<dyn Selector> {
+        match *self {
+            SelectorOptions::SuperMemo2 => {
+                Box::new(memorizer::algorithm::super_memo_2::SuperMemo2Selector::new())
+            }
+            SelectorOptions::RecallCurveSelector => {
+                use memorizer::algorithm::memorize::recall_curve::RecallCurveSelector;
+                Box::new(RecallCurveSelector::new(Default::default()))
+            }
+        }
+        
+    }
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+#[serde(transparent)]
+struct DeckName(pub String);
+
+#[derive(Deserialize, Serialize, Debug)]
+#[serde(transparent)]
+struct UserName(pub String);
 
 #[derive(Deserialize, Serialize, Debug)]
 struct NamedDeck {
-    name: String,
+    name: DeckName,
     path: String,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
 struct UserDecks {
-    username: String,
+    username: UserName,
     decks: Vec<NamedDeck>,
 }
 
@@ -69,9 +91,15 @@ struct HostConfig {
 
 
 use parking_lot::RwLock;
+
+type ThreadsafeTraining = RwLock<Training>;
+
+type UserTraining = std::collections::HashMap<DeckName, ThreadsafeTraining>;
 struct TrainingBackend {
-    // training: RwLock<Training>,
+    entries: std::collections::HashMap<UserName, UserTraining>
 }
+
+
 impl TrainingBackend {
     pub fn from_config(
         config: &HostConfig,

@@ -13,7 +13,6 @@ use memorizer::traits::{Question, Record, RepresentationId, Score, Selector};
 
 use clap::{Parser, ValueEnum};
 
-use std::rc::Rc;
 
 use crossterm::{
     event::{self, Event, KeyCode},
@@ -151,7 +150,7 @@ impl App {
 
     fn process_answer(&mut self) {
         // do something with the current input.
-        let z = Rc::new(TextRepresentation::new(&self.input, RepresentationId(0)));
+        let z = std::sync::Arc::new(TextRepresentation::new(&self.input, RepresentationId(0)));
         let (mut record, truth) = self
             .training
             .get_answer(&self.question, z)

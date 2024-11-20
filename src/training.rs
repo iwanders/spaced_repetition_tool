@@ -11,8 +11,8 @@ pub struct Training {
     questions: Vec<Question>,
     recorder: Box<dyn Recorder>,
     selector: Box<dyn Selector>,
-    transforms: std::collections::HashMap<TransformId, std::rc::Rc<dyn Transform>>,
-    representations: std::collections::HashMap<RepresentationId, std::rc::Rc<dyn Representation>>,
+    transforms: std::collections::HashMap<TransformId, std::sync::Arc<dyn Transform>>,
+    representations: std::collections::HashMap<RepresentationId, std::sync::Arc<dyn Representation>>,
 }
 
 impl Training {
@@ -23,11 +23,11 @@ impl Training {
         recorder: Box<dyn Recorder>,
         selector: Box<dyn Selector>,
     ) -> Self {
-        let mut transforms: std::collections::HashMap<TransformId, std::rc::Rc<dyn Transform>> =
+        let mut transforms: std::collections::HashMap<TransformId, std::sync::Arc<dyn Transform>> =
             Default::default();
         let mut representations: std::collections::HashMap<
             RepresentationId,
-            std::rc::Rc<dyn Representation>,
+            std::sync::Arc<dyn Representation>,
         > = Default::default();
         // Collect questions;
         let mut questions = vec![];
@@ -71,7 +71,7 @@ impl Training {
     }
 
     /// Obtain the representation by id.
-    pub fn representation(&self, id: RepresentationId) -> std::rc::Rc<dyn Representation> {
+    pub fn representation(&self, id: RepresentationId) -> std::sync::Arc<dyn Representation> {
         self.representations
             .get(&id)
             .expect("Requested id must exist")
@@ -79,7 +79,7 @@ impl Training {
     }
 
     /// Obtain the transform by id.
-    pub fn transform(&self, id: TransformId) -> std::rc::Rc<dyn Transform> {
+    pub fn transform(&self, id: TransformId) -> std::sync::Arc<dyn Transform> {
         self.transforms
             .get(&id)
             .expect("Requested id must exist")
@@ -91,8 +91,8 @@ impl Training {
     pub fn get_answer(
         &mut self,
         question: &Question,
-        given_answer: std::rc::Rc<dyn Representation>,
-    ) -> Result<(Record, std::rc::Rc<dyn Representation>), MemorizerError> {
+        given_answer: std::sync::Arc<dyn Representation>,
+    ) -> Result<(Record, std::sync::Arc<dyn Representation>), MemorizerError> {
         let representation = self
             .representations
             .get(&question.to)

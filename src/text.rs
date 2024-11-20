@@ -16,7 +16,7 @@ impl TextRepresentation {
         }
     }
 
-    pub fn from(other: std::rc::Rc<dyn Representation>) -> Self {
+    pub fn from(other: std::sync::Arc<dyn Representation>) -> Self {
         TextRepresentation {
             text: other.text().to_string(),
             id: other.id(),
@@ -56,7 +56,7 @@ impl TextTransform {
             id,
         }
     }
-    pub fn from(other: std::rc::Rc<dyn Transform>) -> Self {
+    pub fn from(other: std::sync::Arc<dyn Transform>) -> Self {
         TextTransform {
             text: other.description().to_string(),
             id: other.id(),
@@ -79,8 +79,8 @@ type TextEdge = (TextRepresentation, TextTransform, TextRepresentation);
 /// A text learnable holds several learnables.
 #[derive(Debug, Default, Clone)]
 pub struct TextLearnable {
-    representations: std::collections::HashMap<RepresentationId, std::rc::Rc<TextRepresentation>>,
-    transforms: std::collections::HashMap<TransformId, std::rc::Rc<TextTransform>>,
+    representations: std::collections::HashMap<RepresentationId, std::sync::Arc<TextRepresentation>>,
+    transforms: std::collections::HashMap<TransformId, std::sync::Arc<TextTransform>>,
     edges: Vec<Question>,
     id: LearnableId,
 }
@@ -92,11 +92,11 @@ impl TextLearnable {
         };
         for (r1, transform, r2) in edges.iter() {
             res.representations
-                .insert(r1.id(), std::rc::Rc::new(r1.clone()));
+                .insert(r1.id(), std::sync::Arc::new(r1.clone()));
             res.representations
-                .insert(r2.id(), std::rc::Rc::new(r2.clone()));
+                .insert(r2.id(), std::sync::Arc::new(r2.clone()));
             res.transforms
-                .insert(transform.id(), std::rc::Rc::new(transform.clone()));
+                .insert(transform.id(), std::sync::Arc::new(transform.clone()));
             res.edges.push(Question {
                 learnable: id,
                 from: r1.id(),
@@ -112,14 +112,14 @@ impl Learnable for TextLearnable {
         self.edges.clone()
     }
 
-    fn representation(&self, id: RepresentationId) -> std::rc::Rc<dyn Representation> {
+    fn representation(&self, id: RepresentationId) -> std::sync::Arc<dyn Representation> {
         self.representations
             .get(&id)
             .expect("Requested id must exist")
             .clone()
     }
 
-    fn transform(&self, id: TransformId) -> std::rc::Rc<dyn Transform> {
+    fn transform(&self, id: TransformId) -> std::sync::Arc<dyn Transform> {
         self.transforms
             .get(&id)
             .expect("Requested id must exist")

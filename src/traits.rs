@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use std::rc::Rc;
+use std::sync::Arc;
 
 #[derive(Debug, PartialEq, Deserialize, Serialize)]
 pub enum RepresentationType {
@@ -31,7 +31,7 @@ pub type Score = f64;
 pub type MemorizerError = Box<dyn std::error::Error>;
 
 /// A particular representation of data, think about the side of a card.
-pub trait Representation: std::fmt::Debug {
+pub trait Representation: std::fmt::Debug + Send + Sync {
     /// Get the type of this presentation.
     fn get_type(&self) -> RepresentationType;
 
@@ -59,7 +59,7 @@ pub trait Representation: std::fmt::Debug {
 
 /// A transformation, like Hex->Binary or 'Translate from A into B', think about the direction
 /// the card is being learnt in.
-pub trait Transform: std::fmt::Debug {
+pub trait Transform: std::fmt::Debug + Send + Sync {
     /// A string describing the particular transformation to be performed.
     fn description(&self) -> &str;
 
@@ -86,17 +86,17 @@ pub struct Question {
 /// Something that relates transformations and representations to each other. This owns the
 /// representations and transforms. Think of this as a single card with front and back (or any
 /// number of sides).
-pub trait Learnable: std::fmt::Debug {
+pub trait Learnable: std::fmt::Debug + Send + Sync {
     /// Get the possible edges for this learnable.
     fn edges(&self) -> Vec<Question>;
 
     /// Retrieval function for a particular representation. Panics if the id is not known to this
     /// learnable.
-    fn representation(&self, id: RepresentationId) -> Rc<dyn Representation>;
+    fn representation(&self, id: RepresentationId) -> Arc<dyn Representation>;
 
     /// Retrieval function for a particular transformation. Panics if the id is not known to this
     /// learnable.
-    fn transform(&self, transform: TransformId) -> Rc<dyn Transform>;
+    fn transform(&self, transform: TransformId) -> Arc<dyn Transform>;
 
     /// Unique id for this learnable.
     fn id(&self) -> LearnableId;
@@ -116,7 +116,7 @@ pub struct Record {
 }
 
 /// Something to track past performance.
-pub trait Recorder: std::fmt::Debug {
+pub trait Recorder: std::fmt::Debug + Send + Sync {
     /// Store an answer.
     fn store_record(&mut self, record: &Record) -> Result<(), MemorizerError>;
 
@@ -125,7 +125,7 @@ pub trait Recorder: std::fmt::Debug {
 }
 
 /// The entity that decided what questions to ask. Only works on Ids.
-pub trait Selector: std::fmt::Debug {
+pub trait Selector: std::fmt::Debug + Send + Sync {
     /// Constructor, takes recorder of past event and a set of learnables.
     fn set_questions(&mut self, questions: &[Question], recorder: &dyn Recorder);
 

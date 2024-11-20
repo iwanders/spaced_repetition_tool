@@ -1,7 +1,8 @@
 use memorizer::recorder::YamlRecorder;
-use memorizer::text::{load_text_learnables, TextRepresentation};
+use memorizer::text::load_text_learnables; // TextRepresentation
 use memorizer::training::Training;
-use memorizer::traits::{Learnable, Question, Record, Recorder, RepresentationId, Score, Selector};
+// use memorizer::traits::{Learnable, Question, Record, Recorder, RepresentationId, Score, Selector};
+use memorizer::traits::Selector;
 
 use std::sync::Arc;
 use std::thread;
@@ -100,6 +101,12 @@ struct TrainingBackend {
 }
 
 impl TrainingBackend {
+    pub fn users(&self) -> Vec<UserName> {
+        self.entries.keys().cloned().collect()
+    }
+}
+
+impl TrainingBackend {
     pub fn from_config(config: &HostConfig, storage_dir: &str) -> Result<Self, BackendError> {
         let mut res = TrainingBackend::default();
         let storage_dir = PathBuf::from(storage_dir);
@@ -176,9 +183,29 @@ impl Hoster {
 
                 let mut content = String::new();
                 rq.as_reader().read_to_string(&mut content)?;
-                let r: TestRequest = serde_json::from_str(&content)?;
+                let _r: TestRequest = serde_json::from_str(&content)?;
                 Ok(Some(
                     tiny_http::Response::from_string("{\"response\":\"queued\"}")
+                        .with_status_code(tiny_http::StatusCode(200))
+                        .boxed(),
+                ))
+            }
+            _ if path.starts_with("users") => {
+                #[derive(Debug, Clone, PartialOrd, Ord, Eq, PartialEq, Serialize, Deserialize)]
+                struct UserResponse {
+                    users: Vec<String>,
+                }
+                let resp = UserResponse {
+                    users: self
+                        .backend
+                        .users()
+                        .into_iter()
+                        .map(|z| z.0.clone())
+                        .collect(),
+                };
+
+                Ok(Some(
+                    tiny_http::Response::from_string(serde_json::to_string_pretty(&resp).unwrap())
                         .with_status_code(tiny_http::StatusCode(200))
                         .boxed(),
                 ))

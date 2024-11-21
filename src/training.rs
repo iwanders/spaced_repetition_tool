@@ -87,8 +87,7 @@ impl Training {
             .clone()
     }
 
-    /// Get the answer to given question and obtain the proposed record for the given answer.
-    /// this proposed record may be modified before it is finalized.
+    /// Get the answer to given question.
     pub fn get_answer(
         &mut self,
         question: &Question,

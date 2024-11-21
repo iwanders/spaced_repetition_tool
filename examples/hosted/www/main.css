@@ -1,0 +1,28 @@
+
+body {
+  font-family: Verdana, sans-serif;
+}
+
+.hidden {
+	display: none;
+}
+
+.h3 {
+	text-align: center;
+	color: grey;
+}
+
+.button {
+}
+
+
+.buttondiv {
+	margin: 1em;
+	background-color: lightgreen;
+	position: relative;
+	border-radius: 1em;
+	padding: 1em;
+}
+.stackedbutton {
+	display: block;
+}

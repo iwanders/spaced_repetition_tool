@@ -4,9 +4,20 @@
     <title>Memorizer</title>
     <link rel="icon" href="/favicon.svg" />
     <link rel="stylesheet" href="main.css" />
+    <script src="main.js" ></script>
   </head>
   <body>
     <div id="main">
     </div>
+    <div id="deck_select" class="hidden">
+      <h3>Decks for user <span id="deck_username"></span></h3>
+      <div id="deck_button_list" class="button_list">
+      </div>
+    </div>
   </body>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+       main_setup();
+    }, false);
+  </script>
 </html>

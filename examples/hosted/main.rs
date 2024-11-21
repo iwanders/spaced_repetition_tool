@@ -221,14 +221,13 @@ impl Hoster {
                         .boxed(),
                 ))
             }
-            full_path if path.ends_with("/deck") && path.starts_with("api/") => {
-                let mut parts = full_path.split("/");
-                parts.next();
+            full_path if path.starts_with("api/deck/") => {
+                let user = full_path.replace("api/deck/", "");
                 #[derive(Debug, Clone, PartialOrd, Ord, Eq, PartialEq, Serialize, Deserialize)]
                 struct DeckResponse {
                     decks: Vec<String>,
                 }
-                let user = UserName(parts.next().unwrap_or("no user").to_owned());
+                let user = UserName(user.to_owned());
                 let resp = DeckResponse {
                     decks: self
                         .backend

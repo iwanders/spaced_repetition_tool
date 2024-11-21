@@ -160,11 +160,8 @@ impl Hoster {
         })
     }
 
-    pub fn request_file(&self, rq: &Request) -> Result<Option<ResponseBox>, BackendError> {
-        let url = rq.url().to_string();
-        let path = url.strip_prefix("/").unwrap();
-        let path = if path == "" { "index.html" } else { path };
-        let path = self.frontend_root.join(Path::new(&path));
+    fn serve_file(&self, path: &Path) -> Result<Option<ResponseBox>, BackendError> {
+        let path = self.frontend_root.join(path);
         println!("Path: {path:?}");
         if !path.is_file() {
             return Ok(None);
@@ -178,11 +175,18 @@ impl Hoster {
         }
     }
 
+    pub fn request_file(&self, rq: &Request) -> Result<Option<ResponseBox>, BackendError> {
+        let url = rq.url().to_string();
+        let path = url.strip_prefix("/").unwrap();
+        let path = if path == "" { "index.html" } else { path };
+        self.serve_file(Path::new(&path))
+    }
+
     pub fn backend_api(&self, rq: &mut Request) -> Result<Option<ResponseBox>, BackendError> {
         let url = rq.url().to_string();
         let path = url.strip_prefix("/").unwrap();
         match path {
-            "test" => {
+            "api/test" => {
                 #[derive(Debug, Clone, PartialOrd, Ord, Eq, PartialEq, Serialize, Deserialize)]
                 struct TestRequest {
                     value: usize,
@@ -197,7 +201,7 @@ impl Hoster {
                         .boxed(),
                 ))
             }
-            "users" => {
+            "api/users" => {
                 #[derive(Debug, Clone, PartialOrd, Ord, Eq, PartialEq, Serialize, Deserialize)]
                 struct UserResponse {
                     users: Vec<String>,
@@ -217,8 +221,9 @@ impl Hoster {
                         .boxed(),
                 ))
             }
-            full_path if path.ends_with("/deck") => {
+            full_path if path.ends_with("/deck") && path.starts_with("api/") => {
                 let mut parts = full_path.split("/");
+                parts.next();
                 #[derive(Debug, Clone, PartialOrd, Ord, Eq, PartialEq, Serialize, Deserialize)]
                 struct DeckResponse {
                     decks: Vec<String>,
@@ -238,6 +243,9 @@ impl Hoster {
                         .with_status_code(tiny_http::StatusCode(200))
                         .boxed(),
                 ))
+            }
+            full_path if path.starts_with("?") => {
+                return self.serve_file(&std::path::PathBuf::from("index.html"));
             }
             _ => Ok(None),
         }

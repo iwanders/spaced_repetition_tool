@@ -152,7 +152,7 @@ impl App {
         let z = std::sync::Arc::new(TextRepresentation::new(&self.input, RepresentationId(0)));
         let (mut record, truth) = self
             .training
-            .get_answer(&self.question, z)
+            .propose_answer(&self.question, z)
             .expect("should succeed");
 
         self.answer_score = record.score;

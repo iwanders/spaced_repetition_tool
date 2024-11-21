@@ -92,6 +92,17 @@ impl Training {
     pub fn get_answer(
         &mut self,
         question: &Question,
+    ) -> Result<std::sync::Arc<dyn Representation>, MemorizerError> {
+        self.representations
+            .get(&question.to)
+            .cloned()
+            .ok_or(format!("could not find question").into())
+    }
+    /// Get the answer to given question and obtain the proposed record for the given answer.
+    /// this proposed record may be modified before it is finalized.
+    pub fn propose_answer(
+        &mut self,
+        question: &Question,
         given_answer: std::sync::Arc<dyn Representation>,
     ) -> Result<(Record, std::sync::Arc<dyn Representation>), MemorizerError> {
         let representation = self

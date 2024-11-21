@@ -243,6 +243,32 @@ impl Hoster {
                         .boxed(),
                 ))
             }
+            full_path if path.starts_with("api/question/") => {
+                let query = full_path.replace("api/question/", "");
+                let mut elements = query.split("/");
+                let user = elements.next().ok_or(format!("no user provided"))?;
+                let deck = elements.next().ok_or(format!("no deck provided"))?;
+
+                #[derive(Debug, Clone, PartialOrd, Ord, Eq, PartialEq, Serialize, Deserialize)]
+                struct QuestionResponse {
+                    // decks: Vec<String>,
+                }
+                let user = UserName(user.to_owned());
+                let resp = DeckResponse {
+                    decks: self
+                        .backend
+                        .decks(&user)
+                        .into_iter()
+                        .map(|z| z.0.clone())
+                        .collect(),
+                };
+
+                Ok(Some(
+                    tiny_http::Response::from_string(serde_json::to_string_pretty(&resp).unwrap())
+                        .with_status_code(tiny_http::StatusCode(200))
+                        .boxed(),
+                ))
+            }
             full_path if path.starts_with("?") => {
                 return self.serve_file(&std::path::PathBuf::from("index.html"));
             }

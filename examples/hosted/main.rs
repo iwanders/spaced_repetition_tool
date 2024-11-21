@@ -100,6 +100,13 @@ struct TrainingBackend {
     entries: std::collections::HashMap<UserName, UserTraining>,
 }
 
+#[derive(Deserialize, Serialize, Debug)]
+struct FullTextQuestion {
+    from: String,
+    transform: String,
+    to: String,
+}
+
 impl TrainingBackend {
     pub fn users(&self) -> Vec<UserName> {
         self.entries.keys().cloned().collect()
@@ -109,6 +116,28 @@ impl TrainingBackend {
             user_decks.keys().into_iter().cloned().collect()
         } else {
             vec![]
+        }
+    }
+
+    pub fn question(
+        &self,
+        user: &UserName,
+        deck: &DeckName,
+    ) -> Result<Option<FullTextQuestion>, BackendError> {
+        let users_decks = self.entries.get(user).ok_or(format!("no user {user:?}"))?;
+        let deck = users_decks.get(deck).ok_or(format!("no user {deck:?}"))?;
+        let mut deck = deck.write();
+        if let Some(v) = deck.question() {
+            let answer_repr = deck.get_answer(&v)?;
+            let from_repr = deck.representation(v.from);
+            let transform = deck.transform(v.transform);
+            Ok(Some(FullTextQuestion {
+                from: from_repr.text().to_owned(),
+                transform: transform.description().to_owned(),
+                to: answer_repr.text().to_owned(),
+            }))
+        } else {
+            Ok(None)
         }
     }
 }
@@ -254,14 +283,8 @@ impl Hoster {
                     // decks: Vec<String>,
                 }
                 let user = UserName(user.to_owned());
-                let resp = DeckResponse {
-                    decks: self
-                        .backend
-                        .decks(&user)
-                        .into_iter()
-                        .map(|z| z.0.clone())
-                        .collect(),
-                };
+                let deck = DeckName(deck.to_owned());
+                let resp = self.backend.question(&user, &deck)?;
 
                 Ok(Some(
                     tiny_http::Response::from_string(serde_json::to_string_pretty(&resp).unwrap())

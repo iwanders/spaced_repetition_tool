@@ -21,9 +21,9 @@ pub mod super_memo_2 {
     }
     /*
         Every time the user starts a review session, SuperMemo provides the user with the cards
-        whose last review occurred at least I days ago. For each review, the user tries to
-        recall the information and (after being shown the correct answer) specifies a grade q
-        (from 0 to 5) indicating a self-evaluation the quality of their response, with each
+        whose last review occurred at least I days ago (see question state). For each review, the
+        user tries to recall the information and (after being shown the correct answer) specifies a
+        grade q (from 0 to 5) indicating a self-evaluation the quality of their response, with each
         grade having the following meaning:
 
         0: "Total blackout", complete failure to recall the information.
@@ -148,7 +148,8 @@ pub mod super_memo_2 {
             }
         }
 
-        /// Retrieve a question to ask.
+        /// Retrieve a question to ask. The order in which the questions are retrieved are random
+        /// but the set it draws from is the same unless a question is answered.
         fn get_question(&mut self) -> Option<Question> {
             use rand::seq::SliceRandom;
             // Stage one:
@@ -175,6 +176,7 @@ pub mod super_memo_2 {
                 })
                 .collect::<Vec<_>>();
 
+            // println!("questions_pending_review: {questions_pending_review:?}");
             if !questions_pending_review.is_empty() {
                 return Some(
                     questions_pending_review
@@ -202,7 +204,7 @@ pub mod super_memo_2 {
             }
 
             // Reached the end of the session, no more questions to ask.
-            return None;
+            None
         }
 
         /// Store answer to a question.

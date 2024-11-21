@@ -75,7 +75,7 @@ impl Training {
     pub fn representation(&self, id: RepresentationId) -> std::sync::Arc<dyn Representation> {
         self.representations
             .get(&id)
-            .expect("Requested id must exist")
+            .expect("representation must exist if obtained from this training")
             .clone()
     }
 
@@ -83,7 +83,7 @@ impl Training {
     pub fn transform(&self, id: TransformId) -> std::sync::Arc<dyn Transform> {
         self.transforms
             .get(&id)
-            .expect("Requested id must exist")
+            .expect("transform must exist if obtained from this training")
             .clone()
     }
 
@@ -107,7 +107,7 @@ impl Training {
         let representation = self
             .representations
             .get(&question.to)
-            .expect("Should exist");
+            .ok_or(format!("could not find representation for this answer"))?;
         let score = representation.get_similarity(&*given_answer);
         let time = std::time::SystemTime::now();
         let record = Record {

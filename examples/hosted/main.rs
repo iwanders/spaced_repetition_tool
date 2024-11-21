@@ -292,7 +292,9 @@ impl Hoster {
                         .boxed(),
                 ))
             }
-            full_path if path.starts_with("?") => {
+            _ if path.starts_with("?") => {
+                // handle anything starting with ? by the index.html, this allows it to behave as a
+                // single page application while still taking state from the url.
                 return self.serve_file(&std::path::PathBuf::from("index.html"));
             }
             _ => Ok(None),

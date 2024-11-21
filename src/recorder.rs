@@ -51,7 +51,8 @@ impl YamlRecorder {
         let recorder: MemoryRecorder;
 
         if std::path::Path::new(filename).exists() {
-            let file = std::fs::File::open(filename).expect("file should be opened");
+            let file = std::fs::File::open(filename)
+                .map_err(|e| format!("failed to open {filename:?}: {e:?}"))?;
             let yaml: serde_yaml::Value = serde_yaml::from_reader(file)?;
             recorder = serde_yaml::from_value(yaml)?;
         } else {
@@ -66,7 +67,6 @@ impl YamlRecorder {
 
     /// Write the data to the disk.
     pub fn write(&mut self) -> Result<(), MemorizerError> {
-        // Flush to disk.
         use std::fs::OpenOptions;
         let file = OpenOptions::new()
             .create(true)

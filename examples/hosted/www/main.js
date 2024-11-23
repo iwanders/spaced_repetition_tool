@@ -34,8 +34,8 @@ class Memorizer {
             let link = document.createElement("a");
             link.text = deck_name;
             link.href = `?user=${self.user}&deck=${deck_name}`;
-            link.classList.toggle("buttondiv", true);
-            link.classList.toggle("stackedbutton", true);
+            link.classList.add("buttondiv");
+            link.classList.add("stackedbutton");
             r.push(link);
             
             console.log("deck_name", deck_name);
@@ -43,7 +43,7 @@ class Memorizer {
 
           document.getElementById("deck_username").textContent = self.user;
           document.getElementById("deck_button_list").replaceChildren(...r);
-          document.getElementById("deck_select").classList.toggle("hidden", false);
+          document.getElementById("deck_select").classList.remove("hidden");
         })
       .catch(function(error) {
         // error handling

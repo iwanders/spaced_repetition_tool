@@ -68,6 +68,9 @@ impl YamlRecorder {
     /// Write the data to the disk.
     pub fn write(&mut self) -> Result<(), MemorizerError> {
         use std::fs::OpenOptions;
+        if let Some(dir) = self.filename.parent() {
+            std::fs::create_dir(dir)?;
+        }
         let file = OpenOptions::new()
             .create(true)
             .write(true)

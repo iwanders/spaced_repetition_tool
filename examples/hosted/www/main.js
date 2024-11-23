@@ -64,15 +64,27 @@ class Memorizer {
     let self = this;
     switch (self.training_state) {
       case TrainingState.ObtainingQuestion:
+        document.getElementById("training_rate_text").textContent = "";
+        document.getElementById("training_rate_answer").textContent = "";
+        document.getElementById("training_rate_actual_answer").textContent = "";
+        document.getElementById("training_question_answer").textContent = "";
+        
+
+        document.getElementById("training_rate_submit").classList.add("hidden");
         document.getElementById("training_retrieving").classList.remove("hidden");
         fetch(`/api/question/${this.user}/${this.deck}`)
             .then((response) => response.json())
             .then(function(data) {
               
               console.log("question", data);
-              self.training_question = data;
-              self.training_state = TrainingState.QuestionAsk;
-              self.redraw_training();
+              if (data == null) {
+                self.training_state = TrainingState.NoMoreQuestions;
+                self.redraw_training();
+              } else {
+                self.training_question = data;
+                self.training_state = TrainingState.QuestionAsk;
+                self.redraw_training();
+              }
             })
           .catch(function(error) {
             // error handling
@@ -103,6 +115,9 @@ class Memorizer {
         document.getElementById("training_rate_submit").classList.remove("hidden");
         break;
       case TrainingState.NoMoreQuestions:
+
+        document.getElementById("training_no_questions").classList.remove("hidden");
+        document.getElementById("training_retrieving").classList.add("hidden");
         break;
       default:
         console.log(`Unhandled state:`, self.training_state);

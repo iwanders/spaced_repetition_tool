@@ -95,7 +95,7 @@ class Memorizer {
         document.getElementById("training_retrieving").classList.add("hidden");
         document.getElementById("training_ask").classList.remove("hidden");
         document.getElementById("training_question_text").textContent = self.training_question.from;
-
+        document.getElementById("training_question_answer").focus();
 
         //  document.getElementById("training_question_answer").textContent = "foo";
         //  self.training_answer_submit()
@@ -177,6 +177,14 @@ class Memorizer {
     document.getElementById("training_rate_4").addEventListener("click", (e) => { self.training_rate_submit(e, 0.6); });
     document.getElementById("training_rate_5").addEventListener("click", (e) => { self.training_rate_submit(e, 0.8); });
     document.getElementById("training_rate_6").addEventListener("click", (e) => { self.training_rate_submit(e, 1.0); });
+
+
+    document.addEventListener("keydown", function(event) {
+      if (event.key == "Enter" && event.ctrlKey && self.training_state == TrainingState.QuestionAsk) {
+        event.preventDefault();
+        self.training_answer_submit(event);
+      }
+    });
   }
 }
 

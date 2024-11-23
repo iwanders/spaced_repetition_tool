@@ -2,16 +2,11 @@
 html, body {
 	font-family: Verdana, sans-serif;
 	height: 100%;
-	margin: 0;
-}
+	height: 100%;
+	margin: 0.0em;
 
-/*
-Make font larger on my phone... >_<
-*/
-@media screen and (max-width: 1200px) {
-  body {
-    font-size: 1.5rem;
-  }
+	overflow: hidden;
+
 }
 
 div.hidden {
@@ -32,17 +27,22 @@ h3 {
 }
 
 .buttondiv {
-	margin: 0.5em;
+	margin: 0.1em;
 	background-color: lightgreen;
 	position: relative;
 	border-radius: 1em;
 	padding: 1em;
 	text-align: center
 }
+.ratingbutton {
+	max-width: 15%;
+	padding: 0.5em;
+}
 
 .training_rate_buttons {
   display: flex;
   width: 100%;
+  max-width: 100%;
   justify-content: space-between;
   flex-direction: row;
 }

@@ -17,6 +17,7 @@ class Memorizer {
     this.deck = undefined;
     this.training_state = TrainingState.ObtainingQuestion;
     this.training_question = undefined;
+    this.training_rate_select = undefined;
   }
 
   set_user(user) {
@@ -108,6 +109,7 @@ class Memorizer {
         document.getElementById("training_rate_text").textContent = self.training_question.from;
         document.getElementById("training_rate_answer").textContent = self.training_question.answer;
         document.getElementById("training_rate_actual_answer").textContent = self.training_question.to;
+        self.training_rate_highlight(undefined);
         break;
 
       case TrainingState.RateSubmit:
@@ -133,6 +135,42 @@ class Memorizer {
     console.log("submit answer", this.training_question.answer);
     self.training_state = TrainingState.AnswerGiven;
     self.redraw_training();
+  }
+
+  training_rate_highlight(index) {
+    for (let i = 1; i <= 6; i++) {
+      document.getElementById("training_rate_" + i).classList.remove("rate_select");
+    }
+    if (index === undefined){
+      this.training_rate_select = index;
+      return;
+    }
+    index = Math.min(Math.max(index, 1), 6);
+    document.getElementById("training_rate_" + index).classList.add("rate_select");
+    this.training_rate_select = index;
+  }
+
+  training_rate_right() {
+    if (this.training_rate_select === undefined) {
+      this.training_rate_select = 3;
+    }
+    this.training_rate_highlight(this.training_rate_select + 1);
+  }
+
+  training_rate_left() {
+    if (this.training_rate_select === undefined) {
+      this.training_rate_select = 4;
+    }
+    this.training_rate_highlight(this.training_rate_select - 1);
+  }
+
+  training_rate_submit_selection(e) {
+    if (this.training_rate_select === undefined) {
+      return;
+    }
+    // Writen like this to avoid rounding that we get from * 0.2.
+    let score = ((this.training_rate_select - 1) * 2.0)/10.0;
+    this.training_rate_submit(e, score);
   }
 
   training_rate_submit(e, score) {
@@ -178,25 +216,35 @@ class Memorizer {
     document.getElementById("training_rate_5").addEventListener("click", (e) => { self.training_rate_submit(e, 0.8); });
     document.getElementById("training_rate_6").addEventListener("click", (e) => { self.training_rate_submit(e, 1.0); });
 
-
     document.addEventListener("keydown", function(event) {
       if (event.key == "Enter" && event.ctrlKey && self.training_state == TrainingState.QuestionAsk) {
         event.preventDefault();
         self.training_answer_submit(event);
+      }
+      console.log(event.key);
+      if (self.training_state == TrainingState.AnswerGiven) {
+        if (event.key == "ArrowRight") {
+          self.training_rate_right();
+        }
+        if (event.key == "ArrowLeft") {
+          self.training_rate_left();
+        }
+        if (event.key == "Enter" || event.key == " ") {
+          self.training_rate_submit_selection(event);
+        }
       }
     });
   }
 }
 
 
-var memorizer;
 function main_setup() {
   console.log("gogo");
 
   const params = new URLSearchParams(window.location.search);
   let user = params.get("user") ?? "default";
 
-  memorizer = new Memorizer();
+  let memorizer = new Memorizer();
   memorizer.set_user(user);
   memorizer.register_inputs();
 

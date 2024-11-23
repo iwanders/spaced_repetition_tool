@@ -178,7 +178,7 @@ class Memorizer {
     if (e != undefined) {
       e.preventDefault();
     }
-    //  this.training_question.answer = document.getElementById("training_question_answer").textContent;
+
     console.log("rating answer ", this.training_question.answer, " with ", score);
     self.training_state = TrainingState.RateSubmit;
     self.redraw_training();
@@ -231,6 +231,9 @@ class Memorizer {
         }
         if (event.key == "Enter" || event.key == " ") {
           self.training_rate_submit_selection(event);
+        }
+        if (event.key == "1" || event.key == "2" || event.key == "3" || event.key == "4" || event.key == "5" || event.key == "6") {
+          self.training_rate_highlight(Number(event.key));
         }
       }
     });

@@ -71,6 +71,14 @@ impl Training {
         self.selector.get_question()
     }
 
+    /// Obtain a question from a learnable id.
+    pub fn question_from_learnable(&self, learnable: LearnableId) -> Option<Question> {
+        self.questions
+            .iter()
+            .position(|a| a.learnable == learnable)
+            .map(|i| self.questions[i])
+    }
+
     /// Obtain the representation by id.
     pub fn representation(&self, id: RepresentationId) -> std::sync::Arc<dyn Representation> {
         self.representations
@@ -97,6 +105,12 @@ impl Training {
             .cloned()
             .ok_or(format!("could not find question").into())
     }
+
+    /// Check if a particular question is present.
+    pub fn has_question(&self, question: &Question) -> bool {
+        self.questions.contains(question)
+    }
+
     /// Get the answer to given question and obtain the proposed record for the given answer.
     /// this proposed record may be modified before it is finalized.
     pub fn propose_answer(

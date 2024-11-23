@@ -96,7 +96,11 @@ class Memorizer {
         document.getElementById("training_rate_text").textContent = self.training_question.from;
         document.getElementById("training_rate_answer").textContent = self.training_question.answer;
         document.getElementById("training_rate_actual_answer").textContent = self.training_question.to;
+        break;
 
+      case TrainingState.RateSubmit:
+        document.getElementById("training_rate").classList.add("hidden");
+        document.getElementById("training_rate_submit").classList.remove("hidden");
         break;
       case TrainingState.NoMoreQuestions:
         break;
@@ -116,12 +120,48 @@ class Memorizer {
     self.redraw_training();
   }
 
+  training_rate_submit(e, score) {
+    let self = this;
+    if (e != undefined) {
+      e.preventDefault();
+    }
+    //  this.training_question.answer = document.getElementById("training_question_answer").textContent;
+    console.log("rating answer ", this.training_question.answer, " with ", score);
+    self.training_state = TrainingState.RateSubmit;
+    self.redraw_training();
+    let payload = {
+      question: this.training_question,
+      score: score,
+    };
+    fetch(`/api/submit_answer/${self.user}/${self.deck}`, {
+        method: "POST",
+        body: JSON.stringify(payload),
+      })
+        .then((response) => response.json())
+        .then(function(data) {
+          self.training_state = TrainingState.ObtainingQuestion;
+          self.redraw_training();
+        })
+      .catch(function(error) {
+        // error handling
+        console.log("Something went wrong", error);
+      });
+    
+  }
+
   register_inputs() {
     let self = this;
 
     document.getElementById("training_answer_submit").addEventListener("click", (e) => {
       self.training_answer_submit(e);
     });
+
+    document.getElementById("training_rate_1").addEventListener("click", (e) => { self.training_rate_submit(e, 0.0); });
+    document.getElementById("training_rate_2").addEventListener("click", (e) => { self.training_rate_submit(e, 0.2); });
+    document.getElementById("training_rate_3").addEventListener("click", (e) => { self.training_rate_submit(e, 0.4); });
+    document.getElementById("training_rate_4").addEventListener("click", (e) => { self.training_rate_submit(e, 0.6); });
+    document.getElementById("training_rate_5").addEventListener("click", (e) => { self.training_rate_submit(e, 0.8); });
+    document.getElementById("training_rate_6").addEventListener("click", (e) => { self.training_rate_submit(e, 1.0); });
   }
 }
 

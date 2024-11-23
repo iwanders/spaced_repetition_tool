@@ -16,17 +16,33 @@
       <h3>Retrieving question, please hold...</h3>
     </div>
     <div id="training_ask" class="hidden verticalspace">
-      
         <p id="training_question_text" class="training_text"> 
         </p>
         <div 
           id="training_question_answer"
           class="training_question_answer"
-          placeholder="Type your answer here..."
+          placeholder="Type your answer here... (or not)"
           contenteditable="true"
           ></div>
-        <div class="buttondiv">submit</div>
-      
+        <div id="training_answer_submit" class="buttondiv">submit</div>
+    </div>
+    <div id="training_rate" class="hidden verticalspace">
+        <p id="training_rate_text" class="training_text"> 
+        </p>
+        <div 
+          id="training_rate_answer"
+          class="training_text"
+          ></div>
+        <p id="training_rate_actual_answer" class="training_truth"> 
+        </p>
+        <div class="training_rate_buttons">
+          <div id="training_rate_1" class="buttondiv rate_1">blackout</div>
+          <div id="training_rate_2" class="buttondiv rate_2">familiar</div>
+          <div id="training_rate_3" class="buttondiv rate_3">ah yes</div>
+          <div id="training_rate_4" class="buttondiv rate_4">effort</div>
+          <div id="training_rate_5" class="buttondiv rate_5">hesitated</div>
+          <div id="training_rate_6" class="buttondiv rate_6">aced</div>
+        </div>
     </div>
   </body>
   <script>

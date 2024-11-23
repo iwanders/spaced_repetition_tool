@@ -1,8 +1,17 @@
 
 html, body {
-  font-family: Verdana, sans-serif;
-  height: 100%;
-  margin: 0;
+	font-family: Verdana, sans-serif;
+	height: 100%;
+	margin: 0;
+}
+
+/*
+Make font larger on my phone... >_<
+*/
+@media screen and (max-width: 1200px) {
+  body {
+    font-size: 1.5rem;
+  }
 }
 
 div.hidden {
@@ -22,14 +31,21 @@ h3 {
   flex-direction: column;
 }
 
-
 .buttondiv {
-	margin: 1em;
+	margin: 0.5em;
 	background-color: lightgreen;
 	position: relative;
 	border-radius: 1em;
 	padding: 1em;
 	text-align: center
+}
+
+.training_rate_buttons {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  flex-direction: row;
+
 }
 
 .single_button {
@@ -45,6 +61,13 @@ h3 {
 	text-align: center;
 	background-color: #e0e0e0;
 	border-radius: 1em;
+}
+
+.training_truth {
+	background-color: #7db079;
+	text-align: center;
+	border-radius: 1em;
+
 }
 
 .training_question_answer {
@@ -67,4 +90,14 @@ h3 {
     color: #777; 
 }
 
+:root {
+  --rate-saturation: 100%;
+  --rate-lightness: 50%;
+}
+.rate_1 {	background-color: hsl(10, var(--rate-saturation), var(--rate-lightness));}
+.rate_2 {	background-color: hsl(20, var(--rate-saturation), var(--rate-lightness));}
+.rate_3 {	background-color: hsl(30, var(--rate-saturation), var(--rate-lightness));}
+.rate_4 {	background-color: hsl(80, var(--rate-saturation), var(--rate-lightness));}
+.rate_5 {	background-color: hsl(90, var(--rate-saturation), var(--rate-lightness));}
+.rate_6 {	background-color: hsl(130, var(--rate-saturation), var(--rate-lightness));}
 

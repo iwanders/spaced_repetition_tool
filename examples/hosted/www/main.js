@@ -83,14 +83,45 @@ class Memorizer {
         document.getElementById("training_retrieving").classList.add("hidden");
         document.getElementById("training_ask").classList.remove("hidden");
         document.getElementById("training_question_text").textContent = self.training_question.from;
+
+
+        //  document.getElementById("training_question_answer").textContent = "foo";
+        //  self.training_answer_submit()
+
         break;
       case TrainingState.AnswerGiven:
+        document.getElementById("training_ask").classList.add("hidden");
+        document.getElementById("training_rate").classList.remove("hidden");
+
+        document.getElementById("training_rate_text").textContent = self.training_question.from;
+        document.getElementById("training_rate_answer").textContent = self.training_question.answer;
+        document.getElementById("training_rate_actual_answer").textContent = self.training_question.to;
+
         break;
       case TrainingState.NoMoreQuestions:
         break;
       default:
         console.log(`Unhandled state:`, self.training_state);
     }
+  }
+
+  training_answer_submit(e) {
+    let self = this;
+    if (e != undefined) {
+      e.preventDefault();
+    }
+    this.training_question.answer = document.getElementById("training_question_answer").textContent;
+    console.log("submit answer", this.training_question.answer);
+    self.training_state = TrainingState.AnswerGiven;
+    self.redraw_training();
+  }
+
+  register_inputs() {
+    let self = this;
+
+    document.getElementById("training_answer_submit").addEventListener("click", (e) => {
+      self.training_answer_submit(e);
+    });
   }
 }
 
@@ -104,6 +135,7 @@ function main_setup() {
 
   memorizer = new Memorizer();
   memorizer.set_user(user);
+  memorizer.register_inputs();
 
   console.log("using user: ", user);
 

@@ -278,14 +278,10 @@ impl Hoster {
                 let user = elements.next().ok_or(format!("no user provided"))?;
                 let deck = elements.next().ok_or(format!("no deck provided"))?;
 
-                #[derive(Debug, Clone, PartialOrd, Ord, Eq, PartialEq, Serialize, Deserialize)]
-                struct QuestionResponse {
-                    // decks: Vec<String>,
-                }
                 let user = UserName(user.to_owned());
                 let deck = DeckName(deck.to_owned());
-                let resp = self.backend.question(&user, &deck)?;
 
+                let resp = self.backend.question(&user, &deck)?;
                 Ok(Some(
                     tiny_http::Response::from_string(serde_json::to_string_pretty(&resp).unwrap())
                         .with_status_code(tiny_http::StatusCode(200))

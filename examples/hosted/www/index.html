@@ -7,12 +7,24 @@
     <script src="main.js" ></script>
   </head>
   <body>
-    <div id="main">
-    </div>
     <div id="deck_select" class="hidden">
       <h3>Decks for user <span id="deck_username"></span></h3>
       <div id="deck_button_list" class="button_list">
       </div>
+    </div>
+    <div id="training_retrieving" class="hidden">
+      <h3>Retrieving question, please hold...</h3>
+    </div>
+    <div id="training_ask" class="hidden">
+      <p id="training_question_text" class="training_text"> 
+      </p>
+      <div 
+        id="training_question_answer"
+        class="training_question_answer"
+        placeholder="Type your answer here..."
+        contenteditable="true"
+        ></div>
+      
     </div>
   </body>
   <script>

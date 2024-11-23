@@ -44,7 +44,15 @@ declares the session complete, but still shows the hardest questions the most of
 
 The second algorithm (currently default in the cli example) is the [SuperMemo2][supermemo]
 algorithm. Which is well known and also implemented by other spaced repetition software. This
-`Selector` does terminate the session if there's no questions to be asked.
+`Selector` does terminate the session if there's no questions to be asked, this is the default.
+
+## Examples
+
+The `hosted` example hosts a webserver with a minimalistic webinterface that one can use to practice.
+It can act as a iOS 'webapp' when added to the homescreen. It supports multiple users and each user
+can have multiple decks available to them. There is no listing of the available users, but
+[this](http://localhost:8080/?user=Ivor) url would be for the user `Ivor` (case sensitive). If no 
+user is provided `default` is used as a username.
 
 [pnas_learning]: https://www.pnas.org/doi/full/10.1073/pnas.1815156116
 [supermemo]: https://en.wikipedia.org/wiki/SuperMemo#Description_of_SM-2_algorithm

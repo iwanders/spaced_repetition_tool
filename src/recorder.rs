@@ -72,7 +72,8 @@ impl YamlRecorder {
             .create(true)
             .write(true)
             .truncate(true)
-            .open(&self.filename)?;
+            .open(&self.filename)
+            .map_err(|e| format!("failed to write to {:?}: {e:?}", self.filename))?;
         serde_yaml::to_writer(file, &self.recorder)?;
         Ok(())
     }

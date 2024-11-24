@@ -1,8 +1,7 @@
 use memorizer::recorder::YamlRecorder;
-use memorizer::text::load_text_learnables; // TextRepresentation
+use memorizer::text::load_text_learnables;
 use memorizer::training::Training;
-// use memorizer::traits::{Learnable, Question, Record, Recorder, RepresentationId, Score, Selector};
-use memorizer::traits::{LearnableId, Question, Record, Selector};
+use memorizer::traits::{LearnableId, Record, Selector};
 
 use std::sync::Arc;
 use std::thread;

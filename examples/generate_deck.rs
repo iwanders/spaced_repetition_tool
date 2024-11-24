@@ -1,5 +1,6 @@
 use memorizer::text::{save_text_learnables, TextLearnable, TextRepresentation, TextTransform};
 use memorizer::traits::{Id, LearnableId, RepresentationId, Transform, TransformId};
+use serde::{Deserialize, Serialize};
 
 use clap::Parser;
 
@@ -81,13 +82,62 @@ fn read_learnables_from_txt(
     Ok(learnables)
 }
 
-/*
-fn read_learnables_from_yaml(input: &str, include_reverse: bool, transform_to: &TextTransform, transform_reverse: &TextTransform) -> Result<Vec<TextLearnable>, memorizer::traits::MemorizerError>  {
-    use std::io::BufRead;
+#[derive(Clone, Debug, Serialize, Deserialize)]
+struct LearnableYaml {
+    from: String,
+    to: String,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+struct DeckYaml {
+    include_reverse: Option<bool>,
+    transform_to: Option<String>,
+    transform_reverse: Option<String>,
+    learnables: Vec<LearnableYaml>,
+}
+
+fn read_learnables_from_yaml(
+    input: &str,
+    include_reverse: bool,
+    transform_to: &TextTransform,
+    transform_reverse: &TextTransform,
+) -> Result<Vec<TextLearnable>, memorizer::traits::MemorizerError> {
     let mut learnables = vec![];
-    // let file = std::fs::File::open(input)?;
+
+    let file =
+        std::fs::File::open(input).map_err(|e| format!("failed to open {input:?}: {e:?}"))?;
+    let deck: DeckYaml = serde_yaml::from_reader(file)?;
+    let transform_to = deck
+        .transform_to
+        .unwrap_or(transform_to.description().to_owned());
+
+    let transform_to = TextTransform::new(&transform_to, TransformId(str_to_hash(&transform_to)));
+
+    let transform_reverse = deck
+        .transform_reverse
+        .unwrap_or(transform_reverse.description().to_owned());
+    let transform_reverse = TextTransform::new(
+        &transform_reverse,
+        TransformId(str_to_hash(&transform_reverse)),
+    );
+
+    for entry in deck.learnables {
+        let mut edges = vec![];
+        let t1 = TextRepresentation::new(&entry.from, RepresentationId(str_to_hash(&entry.from)));
+        let t2 = TextRepresentation::new(&entry.to, RepresentationId(str_to_hash(&entry.to)));
+        edges.push((t1.clone(), transform_to.clone(), t2.clone()));
+        if include_reverse {
+            edges.push((t2, transform_reverse.clone(), t1));
+        }
+
+        // This id is not actually used, but it should be a unique identifier for this edge.
+        let learnable_id =
+            str_to_hash(&(transform_to.description().to_owned() + &entry.from + &entry.to));
+
+        learnables.push(TextLearnable::new(&(edges[..]), LearnableId(learnable_id)));
+    }
     Ok(learnables)
-}*/
+}
 
 fn main() -> Result<(), memorizer::traits::MemorizerError> {
     let args = Args::parse();
@@ -120,10 +170,15 @@ fn main() -> Result<(), memorizer::traits::MemorizerError> {
                 &transform_reverse,
             )?);
         }
-        /*
+
         if input.ends_with("yaml") || input.ends_with("yml") {
-            learnables.extend(read_learnables_from_yaml(&input, include_reverse, &transform_to, &transform_reverse)?);
-        }*/
+            learnables.extend(read_learnables_from_yaml(
+                &input,
+                include_reverse,
+                &transform_to,
+                &transform_reverse,
+            )?);
+        }
     }
 
     save_text_learnables(&args.output, &format!("some example name."), &learnables)?;

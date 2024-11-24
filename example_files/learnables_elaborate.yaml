@@ -1,0 +1,55 @@
+
+# Include reverse also includes the to -> from as learnables.
+#include_reverse: false
+
+# Description for the from -> to transition.
+transform_to: "Answer the question"
+
+# Description for the to -> from transition.
+#transform_reverse: "This would be the reverse transform"
+
+# Actual list of learnables
+learnables:
+  # from https://static.googleusercontent.com/media/sre.google/en//static/pdf/rule-of-thumb-latency-numbers-letter.pdf
+  - from: L1 Cache reference
+    to: 1ns
+  - from: Branch misprediction
+    to: 3ns
+  - from: L2 Cache reference
+    to: 4ns
+  - from: Mutex lock/unlock
+    to: 17ns
+  - from: Main memory reference
+    to: 100ns
+  - from: Read 1MB sequentially from memory
+    to: 10,000ns, 0.01 ms
+  - from: Read 2kB over 10 Gbps network
+    to: 1,600ns 0.0016 ms
+  - from: SSD 4kB random read
+    to: 20,000ns 0.02 ms
+  - from: Read 1MB sequentially from SSD
+    to: 1,000,000ns 1ms
+  - from: Round trip within same datacenter
+    to: 500,000ns 0.5ms
+  - from: Read 1MB sequentially from disk
+    to: 5,000,000ns 5ms
+  - from: Read 1MB sequentially from 1 Gbps network
+    to: 10,000,000ns 10ms
+  - from: Disk seek
+    to: 10,000,000ns 10ms
+  - from: TCP packet roundtrip between continents
+    to: 150,000,000ns 150ms
+
+  # http://csappbook.blogspot.com/2015/08/dianes-silk-dress-costs-89.html
+  - from: Mnemonic for the linux x86-64 calling convention
+    to: |
+      Diane's silk dress costs $89
+      %rdi: Diane's
+      %rsi:   Silk
+      %rdx:   dress
+      %rcx:   costs
+      %r8:    $8
+      %r9:    9
+  # https://en.wikipedia.org/wiki/X86_calling_conventions#cdecl
+  - from: Return value for the x86-64 calling convention
+    to: EAX

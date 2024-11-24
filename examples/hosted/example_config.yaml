@@ -4,5 +4,8 @@ user_decks:
   - username: default
     decks:
       - name: Hex2Dec
-        #cargo run --example generate_from_text -- example_files/hex_dec_conversions.txt --output /tmp/hex.yaml
+        #cargo run --example generate_deck -- ./example_files/hex_dec_conversions.txt --output /tmp/hex.yaml
         path: /tmp/hex.yaml
+      - name: Elaborate
+        #cargo run --example generate_deck -- ./example_files/learnables_elaborate.yaml  --output /tmp/elaborate.yaml
+        path: /tmp/elaborate.yaml

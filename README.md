@@ -54,6 +54,19 @@ can have multiple decks available to them. There is no listing of the available 
 [this](http://localhost:8080/?user=Ivor) url would be for the user `Ivor` (case sensitive). If no 
 user is provided `default` is used as a username.
 
+The `generate_deck` example can be used to create the yaml files consumed by the hosted example or text ui example.
+Two types of files are accepted, a `.txt` file where each line is one learnable, with the answer delimited by a `|` character.
+Or a more elaborate yaml file. Examples for both are found in `./example_files/`.
+
+The decks used by the hosted example need to be created by running the following to convert the simple txt format:
+```
+cargo run --example generate_deck -- ./example_files/hex_dec_conversions.txt --output /tmp/hex.yaml
+```
+and converting the yaml file to the deck with:
+```
+cargo run --example generate_deck -- ./example_files/learnables_elaborate.yaml  --output /tmp/elaborate.yaml
+```
+
 [pnas_learning]: https://www.pnas.org/doi/full/10.1073/pnas.1815156116
 [supermemo]: https://en.wikipedia.org/wiki/SuperMemo#Description_of_SM-2_algorithm
 [spaced_repetition]: https://en.wikipedia.org/wiki/Spaced_repetition

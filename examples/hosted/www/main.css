@@ -9,6 +9,10 @@ html, body {
 
 }
 
+pre {
+	font-family: Verdana, sans-serif;
+}
+
 div.hidden {
 	display: none;
 }

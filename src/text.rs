@@ -213,9 +213,9 @@ pub fn save_text_learnables(
         name: name.to_owned(),
         ..Default::default()
     };
-    use std::collections::HashMap;
-    let mut transforms: HashMap<TransformId, TextTransform> = Default::default();
-    let mut representations: HashMap<RepresentationId, TextRepresentation> = Default::default();
+    use std::collections::BTreeMap;
+    let mut transforms: BTreeMap<TransformId, TextTransform> = Default::default();
+    let mut representations: BTreeMap<RepresentationId, TextRepresentation> = Default::default();
     for learnable in learnables.iter() {
         let mut edges = vec![];
         for q in learnable.edges.iter() {
@@ -235,11 +235,11 @@ pub fn save_text_learnables(
         }
         storage.learnables.push(edges);
     }
-    for (_id, tr) in transforms.drain() {
+    for (_id, tr) in transforms {
         storage.transformations.push(tr);
     }
 
-    for (_id, repr) in representations.drain() {
+    for (_id, repr) in representations {
         storage.representations.push(repr);
     }
     // let yaml: serde_yaml::Value = serde_yaml::from_reader(file)?;

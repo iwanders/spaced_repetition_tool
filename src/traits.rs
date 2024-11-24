@@ -10,17 +10,23 @@ pub type Id = u64;
 
 /// Id for a learnable, a learnable represents a set of learnable edges.
 /// Think of a normal flashcard as a single learnable with two edges (back to front, front to back)
-#[derive(Debug, Eq, Hash, PartialEq, Deserialize, Serialize, Copy, Clone, Default)]
+#[derive(
+    Debug, Eq, Hash, PartialEq, Deserialize, Serialize, Copy, Clone, Default, Ord, PartialOrd,
+)]
 #[serde(transparent)]
 pub struct LearnableId(pub Id);
 
 /// Id for a representation, this is a unique id for the front or back of a traditional card.
-#[derive(Debug, Eq, Hash, PartialEq, Deserialize, Serialize, Copy, Clone, Default)]
+#[derive(
+    Debug, Eq, Hash, PartialEq, Deserialize, Serialize, Copy, Clone, Default, Ord, PartialOrd,
+)]
 #[serde(transparent)]
 pub struct RepresentationId(pub Id);
 
 /// Id for a particular transformation, like translating language A to B.
-#[derive(Debug, Eq, Hash, PartialEq, Deserialize, Serialize, Copy, Clone, Default)]
+#[derive(
+    Debug, Eq, Hash, PartialEq, Deserialize, Serialize, Copy, Clone, Default, Ord, PartialOrd,
+)]
 #[serde(transparent)]
 pub struct TransformId(pub Id);
 

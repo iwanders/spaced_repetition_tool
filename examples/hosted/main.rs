@@ -217,7 +217,7 @@ impl Hoster {
 
     fn serve_file(&self, path: &Path) -> Result<Option<ResponseBox>, BackendError> {
         let path = self.frontend_root.join(path);
-        println!("Path: {path:?}");
+        // println!("Path: {path:?}");
         if !path.is_file() {
             return Ok(None);
         }
@@ -334,7 +334,7 @@ impl Hoster {
                 let submit_rating: SubmitRating = serde_json::from_str(&content)?;
 
                 // We got a question from the user, verify that this actually exists.
-                println!("req: {submit_rating:?}");
+                // println!("req: {submit_rating:?}");
                 self.backend.rate_question(
                     &user,
                     &deck,
@@ -373,19 +373,23 @@ struct Args {
     /// Storage directory
     #[clap(short, long, default_value = "/tmp/")]
     storage: String,
+
+    /// Ip to bind to.
+    #[clap(short, long, default_value = "0.0.0.0")]
+    ip_address: std::net::Ipv4Addr,
+
+    /// Port to bind to
+    #[clap(short, long, default_value = "8080")]
+    port: u16,
 }
 
 pub fn main() -> Result<(), BackendError> {
-    let v = tiny_http::Server::http("0.0.0.0:8080")?;
-    let server = Arc::new(v);
-    let port = server
-        .server_addr()
-        .to_ip()
-        .expect("only using ip sockets")
-        .port();
-    println!("Now listening on port {}", port);
-
     let args = Args::parse();
+
+    let v = tiny_http::Server::http((args.ip_address, args.port))?;
+    let server = Arc::new(v);
+    let server_addr = server.server_addr();
+    println!("Now listening on: {}", server_addr);
 
     let file = std::fs::File::open(args.config)?;
     let config: HostConfig = serde_yaml::from_reader(file)?;

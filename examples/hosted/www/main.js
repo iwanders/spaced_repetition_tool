@@ -46,10 +46,7 @@ class Memorizer {
           document.getElementById("deck_button_list").replaceChildren(...r);
           document.getElementById("deck_select").classList.remove("hidden");
         })
-      .catch(function(error) {
-        // error handling
-        console.log("Something went wrong", error);
-      });
+      .catch((error) => console.log("Something went wrong in the request: ", error));
   }
 
   enter_training(deck) {
@@ -87,10 +84,7 @@ class Memorizer {
                 self.redraw_training();
               }
             })
-          .catch(function(error) {
-            // error handling
-            console.log("Something went wrong", error);
-          });
+            .catch((error) => console.log("Something went wrong in the request: ", error));
         break;
       case TrainingState.QuestionAsk:
         document.getElementById("training_retrieving").classList.add("hidden");
@@ -98,8 +92,6 @@ class Memorizer {
         document.getElementById("training_question_text").textContent = self.training_question.from;
         document.getElementById("training_question_answer").focus();
 
-        //  document.getElementById("training_question_answer").textContent = "foo";
-        //  self.training_answer_submit()
 
         break;
       case TrainingState.AnswerGiven:
@@ -132,7 +124,7 @@ class Memorizer {
       e.preventDefault();
     }
     this.training_question.answer = document.getElementById("training_question_answer").textContent;
-    console.log("submit answer", this.training_question.answer);
+    console.log("submit answer: ", this.training_question.answer);
     self.training_state = TrainingState.AnswerGiven;
     self.redraw_training();
   }
@@ -259,6 +251,4 @@ function main_setup() {
     // Deck select.
     memorizer.view_deck_select();
   }
-
 }
-

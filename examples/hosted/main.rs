@@ -381,6 +381,10 @@ struct Args {
     /// Port to bind to
     #[clap(short, long, default_value = "8080")]
     port: u16,
+
+    /// Number of threads to use
+    #[clap(short, long, default_value = "4")]
+    threads: u16,
 }
 
 pub fn main() -> Result<(), BackendError> {
@@ -398,9 +402,8 @@ pub fn main() -> Result<(), BackendError> {
 
     let backend = Arc::new(Hoster::new(&args.www, training_backend)?);
 
-    // Serve the webserver with 4 threads.
     let mut handles = Vec::new();
-    for _ in 0..4 {
+    for _ in 0..args.threads {
         let server = server.clone();
         let backend = backend.clone();
 

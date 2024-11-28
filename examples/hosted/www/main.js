@@ -11,6 +11,10 @@ const TrainingState = Object.freeze({
     NoMoreQuestions: Symbol("NoMoreQuestions")
 });
 
+function renderHtml(z) {
+  return z.replace("\n", "<br/>");
+}
+
 class Memorizer {
   constructor() {
     this.user = "default";
@@ -89,7 +93,7 @@ class Memorizer {
       case TrainingState.QuestionAsk:
         document.getElementById("training_retrieving").classList.add("hidden");
         document.getElementById("training_ask").classList.remove("hidden");
-        document.getElementById("training_question_text").textContent = self.training_question.from;
+        document.getElementById("training_question_text").innerHTML = renderHtml(self.training_question.from);
         document.getElementById("training_question_answer").focus();
 
 
@@ -98,9 +102,9 @@ class Memorizer {
         document.getElementById("training_ask").classList.add("hidden");
         document.getElementById("training_rate").classList.remove("hidden");
 
-        document.getElementById("training_rate_text").textContent = self.training_question.from;
-        document.getElementById("training_rate_answer").textContent = self.training_question.answer;
-        document.getElementById("training_rate_actual_answer").textContent = self.training_question.to;
+        document.getElementById("training_rate_text").innerHTML = renderHtml(self.training_question.from);
+        document.getElementById("training_rate_answer").innerHTML = renderHtml(self.training_question.answer);
+        document.getElementById("training_rate_actual_answer").innerHTML = renderHtml(self.training_question.to);
         self.training_rate_highlight(undefined);
         break;
 
@@ -123,7 +127,7 @@ class Memorizer {
     if (e != undefined) {
       e.preventDefault();
     }
-    this.training_question.answer = document.getElementById("training_question_answer").textContent;
+    this.training_question.answer = document.getElementById("training_question_answer").innerHTML;
     console.log("submit answer: ", this.training_question.answer);
     self.training_state = TrainingState.AnswerGiven;
     self.redraw_training();
@@ -213,7 +217,6 @@ class Memorizer {
         event.preventDefault();
         self.training_answer_submit(event);
       }
-      console.log(event.key);
       if (self.training_state == TrainingState.AnswerGiven) {
         if (event.key == "ArrowRight") {
           self.training_rate_right();

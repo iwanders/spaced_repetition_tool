@@ -12,7 +12,7 @@ const TrainingState = Object.freeze({
 });
 
 function renderHtml(z) {
-  return z.replace("\n", "<br/>");
+  return z.replace(/\n/g, "<br>").replace(/\\n/g, "<br>");
 }
 
 class Memorizer {

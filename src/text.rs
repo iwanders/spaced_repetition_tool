@@ -249,7 +249,8 @@ pub fn save_text_learnables(
         .create(true)
         .write(true)
         .truncate(true)
-        .open(filename)?;
+        .open(filename)
+        .map_err(|e| format!("failed to open {filename}: {e}"))?;
     serde_yaml::to_writer(file, &storage)?;
 
     Ok(())

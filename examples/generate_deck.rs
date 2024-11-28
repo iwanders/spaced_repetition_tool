@@ -51,7 +51,7 @@ fn read_learnables_from_txt(
 ) -> Result<Vec<TextLearnable>, memorizer::traits::MemorizerError> {
     use std::io::BufRead;
     let mut learnables = vec![];
-    let file = std::fs::File::open(input)?;
+    let file = std::fs::File::open(input).map_err(|e| format!("failed to open {input}: {e}"))?;
     let lines = std::io::BufReader::new(file)
         .lines()
         .map(|v| v.expect("non unicode?"))

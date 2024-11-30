@@ -67,6 +67,14 @@ and converting the yaml file to the deck with:
 cargo run --example generate_deck -- ./example_files/learnables_elaborate.yaml  --output /tmp/elaborate.yaml
 ```
 
+The hosted example can then be ran with:
+```
+cargo r --release  --example hosted -- ./examples/hosted/example_config.yaml
+```
+
+After which going to [http://localhost:8080/](http://localhost:8080/) should show these two decks for the `default` user.
+
+
 [pnas_learning]: https://www.pnas.org/doi/full/10.1073/pnas.1815156116
 [supermemo]: https://en.wikipedia.org/wiki/SuperMemo#Description_of_SM-2_algorithm
 [spaced_repetition]: https://en.wikipedia.org/wiki/Spaced_repetition

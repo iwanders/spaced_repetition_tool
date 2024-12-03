@@ -69,7 +69,7 @@ cargo run --example generate_deck -- ./example_files/learnables_elaborate.yaml  
 
 The hosted example can then be ran with:
 ```
-cargo r --release  --example hosted -- ./examples/hosted/example_config.yaml
+cargo r  --example hosted -- ./examples/hosted/example_config.yaml
 ```
 
 After which going to [http://localhost:8080/](http://localhost:8080/) should show these two decks for the `default` user.

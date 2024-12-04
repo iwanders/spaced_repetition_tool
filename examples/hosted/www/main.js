@@ -1,5 +1,8 @@
 "use strict";
 
+// Time during which input events are ignored after a page change.
+const PAGE_REDRAW_INTERACTION_DISABLE = 500;
+
 const TrainingState = Object.freeze({
     /// Internal state while we are retrieving a question.
     ObtainingQuestion:  Symbol("ObtainingQuestion"),
@@ -22,6 +25,7 @@ class Memorizer {
     this.training_state = TrainingState.ObtainingQuestion;
     this.training_question = undefined;
     this.training_rate_select = undefined;
+    this.interaction_disabled = false;
   }
 
   set_user(user) {
@@ -64,6 +68,12 @@ class Memorizer {
 
   redraw_training() {
     let self = this;
+
+    self.interaction_disabled = true;
+    setTimeout(() => {
+      self.interaction_disabled = false;
+    }, PAGE_REDRAW_INTERACTION_DISABLE);
+
     switch (self.training_state) {
       case TrainingState.ObtainingQuestion:
         document.getElementById("training_rate_text").textContent = "";
@@ -124,6 +134,11 @@ class Memorizer {
 
   training_answer_submit(e) {
     let self = this;
+
+    if (self.interaction_disabled) {
+      return;
+    }
+
     if (e != undefined) {
       e.preventDefault();
     }
@@ -171,6 +186,11 @@ class Memorizer {
 
   training_rate_submit(e, score) {
     let self = this;
+
+    if (self.interaction_disabled) {
+      return;
+    }
+
     if (e != undefined) {
       e.preventDefault();
     }

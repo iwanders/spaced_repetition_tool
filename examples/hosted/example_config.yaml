@@ -9,3 +9,8 @@ user_decks:
       - name: Elaborate
         #cargo run --example generate_deck -- ./example_files/learnables_elaborate.yaml  --output /tmp/elaborate.yaml
         path: /tmp/elaborate.yaml
+
+      - name: ElaborateWithCurve
+        #cargo run --example generate_deck -- ./example_files/learnables_elaborate.yaml  --output /tmp/elaborate.yaml
+        path: /tmp/elaborate.yaml
+        selector: RecallCurveSelector

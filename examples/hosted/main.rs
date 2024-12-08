@@ -74,6 +74,7 @@ struct UserName(pub String);
 struct NamedDeck {
     name: DeckName,
     path: String,
+    selector: Option<SelectorOptions>,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -175,7 +176,11 @@ impl TrainingBackend {
         for user_deck in config.user_decks.iter() {
             let user_map = res.entries.entry(user_deck.username.clone()).or_default();
             for deck in user_deck.decks.iter() {
-                let selector = config.selector.make_selector();
+                let selector = deck
+                    .selector
+                    .as_ref()
+                    .unwrap_or(&config.selector)
+                    .make_selector();
                 // Load the actual deck.
                 let deck_learnables = load_text_learnables(&deck.path)?;
 
